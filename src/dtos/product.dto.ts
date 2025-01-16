@@ -1,4 +1,5 @@
-import { IsString, IsNumber, IsOptional, IsArray, IsIn } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsArray, IsEnum } from 'class-validator';
+import { PRODUCT_STATUS as ProductStatus } from '../constants/enum'
 
 export class CreateProductDTO {
   @IsString()
@@ -18,6 +19,6 @@ export class CreateProductDTO {
   @IsOptional()
   category: string;
 
-  @IsIn(['draft', 'published', 'archived'])
-  status: 'draft' | 'published' | 'archived';
+  @IsEnum(ProductStatus)
+  status: ProductStatus;
 }
