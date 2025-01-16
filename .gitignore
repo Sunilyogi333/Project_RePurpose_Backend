@@ -1,0 +1,8 @@
+npm.lock
+/node_modules
+.env 
+build
+dist
+.log
+public
+package-lock.json
