@@ -6,9 +6,8 @@ import authentication from '../middlewares/authentication.middleware';
 import { catchAsync } from '../utils/catchAsync';
 import { CreateProductDTO } from '../dtos/product.dto'
 import { container } from 'tsyringe';
-import multer from 'multer';
+import upload from '../middlewares/multer.middleware';
 
-const upload = multer({ dest: 'uploads/' }); // Temporary storage for images
 const router = Router();
 const productController = container.resolve(ProductController);
 

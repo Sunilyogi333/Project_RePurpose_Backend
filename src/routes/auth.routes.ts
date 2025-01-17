@@ -3,6 +3,7 @@ import { ROLE } from '../constants/enum';
 import { AuthController } from '../controllers/auth/auth.controller'; 
 import { RegisterUserDTO } from '../dtos/user.dto';
 import { LoginDTO } from '../dtos/auth.dto';
+import { VerifyOtpDTO } from '../dtos/otp.dto';
 import RequestValidator from '../middlewares/Request.Validator'; // Validation middleware
 import authentication from '../middlewares/authentication.middleware'; // Auth middleware
 import HttpException from '../utils/HttpException'; // Custom HTTP exception handler
@@ -19,6 +20,14 @@ router.post(
   RequestValidator.validate(RegisterUserDTO),
   catchAsync(iocAuthController.register.bind(iocAuthController))
 );
+
+// OTP verification route
+router.post(
+  '/verify-otp',
+  RequestValidator.validate(VerifyOtpDTO), 
+  catchAsync(iocAuthController.verifyOtp.bind(iocAuthController))
+);
+
 
 // User login route
 router.post(

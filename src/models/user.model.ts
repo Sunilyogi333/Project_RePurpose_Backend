@@ -36,6 +36,7 @@ const userSchema = new Schema<IUser>(
     googleId: {
       type: String,
       unique: true,
+      sparse:true,
     },
     profileImage: {
       type: String,
@@ -46,7 +47,7 @@ const userSchema = new Schema<IUser>(
     role: {
       type: String,
       enum: [ROLE.MEMBER, ROLE.SELLER, ROLE.ADMIN],
-      default: ROLE.MEMBER,
+      default: ROLE.SELLER,
     },
     storeName: {
       type: String,

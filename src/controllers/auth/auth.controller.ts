@@ -8,6 +8,9 @@ import { ROLE } from '../../constants/enum'
 import { EnvironmentConfiguration } from '../../config/env.config'
 import axios from 'axios'
 import jwt from 'jsonwebtoken'
+import sendEmail from '../../services/email.service'
+import generateOtp from '../../utils/generateOtp'
+import OTP from '../../models/otp.model'
 
 @injectable()
 export class AuthController {
@@ -23,8 +26,23 @@ export class AuthController {
     const userData = { firstName, lastName, email, password, role, phoneNumber }
     const newUser = await this.userService.createUser(userData)
 
+    const otp = generateOtp()
+
+    const otpDocument = new OTP({
+      userId: newUser._id,
+      otp,
+      expiresAt: Date.now() + 5 * 60 * 1000,
+    })
+    await otpDocument.save()
+
+    // Send OTP email
+    const emailContent = `<p>Dear ${firstName},</p>
+                          <p>Your OTP for email verification is: <b>${otp}</b></p>
+                          <p>This OTP is valid for 10 minutes.</p>`
+    await sendEmail(email, 'Email Verification OTP', emailContent)
+
     res.status(StatusCodes.CREATED).json(
-      createResponse(true, StatusCodes.CREATED, 'User registered successfully', {
+      createResponse(true, StatusCodes.CREATED, 'Verification Email Sent', {
         id: newUser._id,
         firstName: newUser.firstName,
         lastName: newUser.lastName,
@@ -34,25 +52,94 @@ export class AuthController {
     )
   }
 
+  async verifyOtp(req: Request, res: Response): Promise<void> {
+    const { userId, otp } = req.body
+
+    try {
+      // Validate request
+      if (!userId || !otp) {
+        throw HttpException.BadRequest('User ID and OTP are required.')
+      }
+
+      // Find the OTP record
+      const otpRecord = await OTP.findOne({ userId })
+      if (!otpRecord) {
+        throw HttpException.NotFound('OTP record not found.')
+      }
+
+      // Check if the OTP is expired
+      if (otpRecord.expiresAt.getTime() < Date.now()) {
+        throw HttpException.BadRequest('OTP has expired.')
+      }
+
+      // Verify the OTP
+      const isOtpValid = await otpRecord.isOtpCorrect(otp)
+      if (!isOtpValid) {
+        throw HttpException.Unauthorized('Invalid OTP.')
+      }
+
+      // OTP is valid, proceed with user verification
+      const updatedUser = await this.userService.updateUser(userId, { isEmailVerified: true })
+
+      // Remove the OTP record after successful verification
+      await OTP.deleteOne({ userId })
+
+      // Send success response
+      res.status(StatusCodes.SUCCESS).json(
+        createResponse(true, StatusCodes.SUCCESS, 'Email verified and user successfully updated', {
+          id: updatedUser?._id,
+          firstName: updatedUser?.firstName,
+          lastName: updatedUser?.lastName,
+          email: updatedUser?.email,
+          role: updatedUser?.role,
+          isEmailVerified: updatedUser?.isEmailVerified,
+        })
+      )
+    } catch (error) {
+      console.error('Error during OTP verification:', error)
+      throw HttpException.InternalServer('Unable to verify OTP')
+    }
+  }
+
   async login(req: Request, res: Response): Promise<void> {
     const { email, password } = req.body
 
+    // Find the user by email
     const user = await this.userService.findByEmail(email)
     if (!user) {
       throw HttpException.Unauthorized('Invalid email or password')
     }
 
+    // Check if the email is verified
+    if (!user.isEmailVerified) {
+      res.status(StatusCodes.FORBIDDEN).json(
+        createResponse(
+          false,
+          StatusCodes.FORBIDDEN,
+          'Email is not verified. Please verify your email before logging in.',
+          {
+            isEmailVerified: false,
+          }
+        )
+      )
+      return
+    }
+
+    // Validate the password
     const isPasswordValid = await user.isPasswordCorrect(password)
     if (!isPasswordValid) {
       throw HttpException.Unauthorized('Invalid email or password')
     }
 
+    // Generate tokens
     const accessToken = await user.generateAccessToken()
     const refreshToken = await user.generateRefreshToken()
 
+    // Save the refresh token to the user's record
     user.refreshToken = refreshToken
     await user.save()
 
+    // Set the refresh token in a cookie
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: true,
@@ -60,6 +147,7 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     })
 
+    // Send the response
     res.status(StatusCodes.SUCCESS).json(
       createResponse(true, StatusCodes.SUCCESS, 'Login successful', {
         id: user._id,
@@ -67,7 +155,7 @@ export class AuthController {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        role: user.role || ROLE.MEMBER,
+        role: user.role,
       })
     )
   }

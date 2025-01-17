@@ -8,11 +8,6 @@ export class ProductService {
   }
 
   async createProduct(productData: Partial<IProduct>): Promise<IProduct> {
-    const existingProduct = await Product.findOne({ name: productData.name });
-    if (existingProduct) {
-      throw HttpException.Conflict('Product with this name already exists');
-    }
-
     const newProduct = new Product(productData);
     await newProduct.save();
     return newProduct;

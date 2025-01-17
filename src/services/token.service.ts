@@ -2,6 +2,7 @@
 
 import { WebToken } from '../utils/webToken.utils'
 import { IUser } from '../interfaces/user.interface'
+import { OAuth2Client } from 'google-auth-library'
 
 const webToken = new WebToken()
 
@@ -29,5 +30,21 @@ export class TokenService {
       },
       user.role
     )
+  }
+
+  static async refreshAccessToken(refreshToken: string): Promise<string> {
+    try {
+      const oauth2Client = new OAuth2Client(
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_CLIENT_SECRET,
+        process.env.CALLBACK_URL
+      )
+      oauth2Client.setCredentials({ refresh_token: refreshToken })
+      const res = await oauth2Client.getAccessToken()
+      return res.token || ''
+    } catch (error) {
+      console.error('Error refreshing access token:', error);
+      throw new Error('Error while refreshing access token')
+    }
   }
 }

@@ -25,7 +25,7 @@ class CloudinaryService {
       if (error instanceof Error) {
         console.log('Error uploading file to Cloudinary', error.message);
       } else {
-        console.log('An unknown error occurred');
+        console.log('An unknown error occurred', error);
       }
       fs.unlinkSync(localFilePath); // Delete local file after failed upload
       return null;
