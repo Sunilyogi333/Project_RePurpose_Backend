@@ -17,6 +17,10 @@ export interface IEnvironmentConfiguration {
   FORGET_PASSWORD_SECRET: string
   FORGET_PASSWORD_EXPIRES_IN: string
 
+  //Verification Token
+  VERIFICATION_TOKEN_SECRET: string
+  VERIFICATION_TOKEN_EXPIRES_IN: string
+
   //Google Configuration
   GOOGLE_CLIENT_ID: string
   GOOGLE_CLIENT_SECRET: string

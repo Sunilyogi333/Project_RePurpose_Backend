@@ -11,6 +11,8 @@ import jwt from 'jsonwebtoken'
 import sendEmail from '../../services/email.service'
 import generateOtp from '../../utils/generateOtp'
 import OTP from '../../models/otp.model'
+import Token from '../../models/token.model'
+import * as crypto from 'crypto'
 
 @injectable()
 export class AuthController {
@@ -256,6 +258,102 @@ export class AuthController {
       throw HttpException.InternalServer('Unable to refresh token')
     }
   }
+
+  async forgotPassword(req: Request, res: Response): Promise<void> {
+    const { email } = req.body
+
+    try {
+      if (!email) {
+        throw HttpException.BadRequest('Email is required.')
+      }
+
+      // Check if user exists
+      const user = await this.userService.findByEmail(email)
+      if (!user) {
+        throw HttpException.NotFound('No user found with this email.')
+      }
+
+      const uniqueString = crypto.randomBytes(32).toString('hex')
+      const token = new Token({
+        userId: user._id,
+        uniqueString,
+        createdAt: new Date(),
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000), // Token expires in 15 minutes
+      })
+
+      await token.save()
+
+      const resetLink = `${EnvironmentConfiguration.CLIENT_URL}/reset-password/${token.generateToken()}`
+      await sendEmail(
+        user.email,
+        'Password Reset Request',
+        `Click the link below to reset your password:\n\n${resetLink}`
+      )
+
+      res.status(200).json(createResponse(true, StatusCodes.SUCCESS, 'Password reset link sent to your email.'))
+    } catch (error) {
+      throw HttpException.InternalServer('Failed to password reset link')
+    }
+  }
+
+  async resetForgottenPassword(req: Request, res: Response): Promise<Response> {
+    const { token, newPassword } = req.body
+
+    try {
+      const payload: any = jwt.verify(token, EnvironmentConfiguration.VERIFICATION_TOKEN_SECRET)
+      const existingToken = await Token.findOne({ userId: payload.userId })
+
+      if (!existingToken) {
+        throw HttpException.BadRequest('Invalid or expired token.')
+      }
+
+      const isValid = await existingToken.isUniqueStringCorrect(payload.uniqueString)
+      if (!isValid) {
+        throw HttpException.BadRequest('Invalid token')
+      }
+
+      const user = await this.userService.findUserById(payload.userId)
+      if (!user) {
+        throw HttpException.NotFound('User not found')
+      }
+
+      user.password = newPassword // Make sure password hashing is handled in the user schema
+      await user.save() // Save the updated user
+
+      await Token.deleteOne({ userId: payload.userId })
+
+      return res.status(StatusCodes.SUCCESS).json(createResponse(true, 200, 'Password changed successfully.'))
+    } catch (error) {
+      console.log('An error occured', error)
+      throw HttpException.InternalServer('Internal Server Error')
+    }
+  }
+
+  async changePassword(req: Request, res: Response): Promise<void> {
+    const { oldPassword, newPassword } = req.body;
+    const userId = req.user._id;
+
+    try {
+        const user = await this.userService.findUserById(userId);
+        
+        if (!user) {
+            throw HttpException.NotFound('User not found');
+        }
+
+        const isMatch = await user.isPasswordCorrect(oldPassword);
+        if (!isMatch) {
+            throw HttpException.BadRequest('Old password is incorrect');
+        }
+
+        user.password = newPassword; // Make sure password hashing is handled in the user schema
+        await user.save(); // Save the updated user
+
+        res.status(StatusCodes.SUCCESS).json(createResponse(true, 200, 'Password changed successfully.'));
+    } catch (error) {
+        console.log('An error occurred', error);
+        throw HttpException.InternalServer('Internal Server Error');
+    }
+}
 
   async googleAuth(req: Request, res: Response): Promise<void> {
     // This route only initiates Google authentication.

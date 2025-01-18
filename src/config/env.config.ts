@@ -20,6 +20,10 @@ export const EnvironmentConfiguration: IEnvironmentConfiguration = {
   FORGET_PASSWORD_SECRET: process.env.FORGET_PASSWORD_SECRET ?? '',
   FORGET_PASSWORD_EXPIRES_IN: process.env.FORGET_PASSWORD_EXPIRES_IN ?? '',
 
+  //Verification Token
+  VERIFICATION_TOKEN_SECRET: process.env.VERIFICATION_TOKEN ?? '',
+  VERIFICATION_TOKEN_EXPIRES_IN: process.env.VERIFICATION_TOKEN_EXPIRES_IN ?? '',
+
   //Google Configuration
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? '',
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ?? '',

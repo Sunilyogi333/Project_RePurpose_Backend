@@ -27,6 +27,12 @@ router.get(
   catchAsync(productController.getProducts.bind(productController))
 );
 
+router.post(
+  '/reward-points',
+  // authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.MEMBER]), 
+  catchAsync(productController.getRewardPoints.bind(productController))
+);
+
 // Handle undefined routes
 router.all('/*', (req, res) => {
   res.status(405).json({ message: 'Method not allowed' });

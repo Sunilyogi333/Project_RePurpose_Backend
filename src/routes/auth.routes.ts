@@ -28,7 +28,6 @@ router.post(
   catchAsync(iocAuthController.verifyOtp.bind(iocAuthController))
 );
 
-
 // User login route
 router.post(
   '/login',
@@ -45,16 +44,28 @@ router.get(
 // Logout route
 router.post(
   '/logout',
-  authentication([ROLE.MEMBER, ROLE.SELLER, ROLE.ADMIN]), // Adjust roles as per your project
+  authentication([ROLE.MEMBER, ROLE.SELLER, ROLE.ADMIN]),
   catchAsync(iocAuthController.logout.bind(iocAuthController))
 );
 
-// // Change password route
-// router.patch(
-//   '/change-password',
-//   authentication([ROLE.MEMBER, ROLE.SELLER, ROLE.ADMIN]),
-//   catchAsync(iocAuthController.changePassword?.bind(authController)) // Add this method in AuthController if applicable
-// );
+// Forgot password route
+router.post(
+  '/forgot-password',
+  catchAsync(iocAuthController.forgotPassword.bind(iocAuthController))
+);
+
+// Reset forgotten password route
+router.post(
+  '/reset-password',
+  catchAsync(iocAuthController.resetForgottenPassword.bind(iocAuthController))
+);
+
+// Change password route
+router.patch(
+  '/change-password',
+  authentication([ROLE.MEMBER, ROLE.SELLER, ROLE.ADMIN]),
+  catchAsync(iocAuthController.changePassword.bind(iocAuthController))
+);
 
 router.get(
   '/google',
@@ -62,15 +73,13 @@ router.get(
   catchAsync(iocAuthController.googleAuth.bind(iocAuthController))
 );
 
-// router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-
-
 // Google authentication callback
 router.get(
   '/google/callback',
   passport.authenticate('google', { session: false }),
   catchAsync(iocAuthController.googleAuthCallback.bind(iocAuthController))
 );
+
 router.post(
   '/complete-profile',
   catchAsync(iocAuthController.completeProfile.bind(iocAuthController))
