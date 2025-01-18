@@ -20,6 +20,13 @@ const middleware = (app: Application) => {
   app.use(rateLimiter)
   app.use(morgan('dev'))
   app.use('/api', router)
+  app.get('/', (req, res) => {
+    res.send({
+      success: true,
+      message: 'welcomeMessage',
+      data: [],
+    })
+  })
   app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec))
 
   console.log('Environment:', EnvironmentConfiguration.NODE_ENV)
