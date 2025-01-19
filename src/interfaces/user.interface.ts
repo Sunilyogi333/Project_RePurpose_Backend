@@ -8,7 +8,7 @@ export interface IUser extends Document {
   email: string;
   password: string;  
   googleId?: string; 
-  profileImage?: string;
+  profilePicture?: string;
   phoneNumber: string;
   role: ROLE;
   storeName?: string;
