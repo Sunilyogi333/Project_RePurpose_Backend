@@ -3,6 +3,8 @@ import { Message } from "../constants/message";
 import authRoutes from './auth.routes'
 import productRoutes from './product.routes'
 import categoryRoutes from './category.routes'
+import chatRoutes from './chat.routes'
+import notificationRoutes from './notification.routes'
 
 export type Route = {
     path: string;
@@ -22,6 +24,14 @@ const routes: Route[] = [
   {
     path: '/category',
     route: categoryRoutes
+  },
+  {
+    path: '/chat',
+    route: chatRoutes
+  },
+  {
+    path: '/notifications',
+    route: notificationRoutes
   }
 ];
 

@@ -30,7 +30,7 @@ passport.use(
             firstName: profile.name?.givenName || 'FirstName',
             lastName: profile.name?.familyName || 'LastName',
             email: profile.emails[0].value,
-            profileImage: profile.photos?.[0]?.value || '',
+            profilePicture: profile.photos?.[0]?.value || '',
             isEmailVerified: true, // Google verified email
             googleId: profile.id,
             refreshToken: refreshToken,

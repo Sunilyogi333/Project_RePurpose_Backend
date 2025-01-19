@@ -30,6 +30,10 @@ export class UserService {
     return User.findById(id);
   }
 
+  async getAllUsers(): Promise<IUser[]> {
+    return await User.find();
+  }  
+
   async findByGoogleId(googleId: string): Promise<IUser | null> {
     return await User.findOne({ googleId });
   }  

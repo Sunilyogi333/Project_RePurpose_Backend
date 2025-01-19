@@ -4,6 +4,9 @@ export interface IProduct extends Document {
   name: string;
   slug: string;
   description: string;
+  partName: string;
+  materialName: string;
+  ecoFriendly: Boolean;
   price: number;
   images: string[];
   categories: Types.ObjectId[];

@@ -38,7 +38,7 @@ const userSchema = new Schema<IUser>(
       unique: true,
       sparse:true,
     },
-    profileImage: {
+    profilePicture: {
       type: String,
     },
     phoneNumber: {

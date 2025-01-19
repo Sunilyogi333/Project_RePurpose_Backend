@@ -1,11 +1,14 @@
 import { Request, Response } from 'express'
 import { ProductService } from '../../services/product/product.service'
+import NotificationService from '../../services/notification.service'
+import User from '../../models/user.model'
 import { createResponse } from '../../utils/response'
 import { StatusCodes } from '../../constants/statusCodes'
 import HttpException from '../../utils/HttpException'
 import { injectable } from 'tsyringe'
 import cloudinaryService from '../../services/cloudinary.service'
 import { PythonShell } from 'python-shell'
+import { io } from '../../server' 
 
 @injectable()
 export class ProductController {
@@ -16,7 +19,7 @@ export class ProductController {
   }
 
   async createProduct(req: Request, res: Response): Promise<void> {
-    const { name, description, price, category } = req.body
+    const { name, description, price, category, partName, materialName, ecoFriendly } = req.body
     const seller = req.user._id
     console.log('req.user:', req.user)
     const images = req.files as Express.Multer.File[]
@@ -38,8 +41,30 @@ export class ProductController {
       )
 
       // Create product data including the image URLs
-      const productData = { name, description, price, category, images: uploadedImages, seller }
+      const productData = {
+        name,
+        description,
+        price,
+        category,
+        images: uploadedImages,
+        seller,
+        partName,
+        materialName,
+        ecoFriendly,
+      }
       const newProduct = await this.productService.createProduct(productData)
+
+      // Send notifications to stores via Socket.IO
+      const storeIds = await User.find({ role: 'SELLER' }).select('_id')
+      const notificationMessage = `${newProduct.name} is available!`
+
+      storeIds.forEach((store) => {
+        io.emit('receiveNotification', {
+          userId: store._id.toString(),
+          message: notificationMessage,
+          productId: newProduct._id,
+        })
+      })
 
       res
         .status(StatusCodes.CREATED)
@@ -70,7 +95,17 @@ export class ProductController {
 
   async updateProduct(req: Request, res: Response): Promise<void> {
     const { id } = req.params
-    const { name, description, price, categories, retainedImages = [], removedImages = [] } = req.body
+    const {
+      name,
+      description,
+      price,
+      categories,
+      partName,
+      materialName,
+      ecoFriendly,
+      retainedImages = [],
+      removedImages = [],
+    } = req.body
     const newImages = req.files as Express.Multer.File[]
 
     try {
@@ -111,6 +146,9 @@ export class ProductController {
         price,
         categories,
         images: updatedImages, // Save updated images
+        partName,
+        materialName,
+        ecoFriendly,
       })
 
       res

@@ -60,6 +60,7 @@
     "passport-google-oauth20": "^2.0.0",
     "python-shell": "^5.0.0",
     "reflect-metadata": "^0.2.2",
+    "socket.io": "^4.8.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "tsyringe": "^4.8.0"

@@ -34,3 +34,11 @@ export enum PRODUCT_STATUS {
   SOLD = 'SOLD',
   DONATED = 'DONATED',
 }
+
+export enum NOTIFICATION_TYPE {
+  PROMOTIONAL = 'Promotional',
+  SYSTEM_ALERT = 'System Alert',
+  PRODUCT_UPDATE = 'Product Update',
+  ORDER_STATUS = 'Order Status',
+}
+
