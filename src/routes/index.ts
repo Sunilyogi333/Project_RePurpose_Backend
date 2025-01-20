@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { Message } from "../constants/message";
 import authRoutes from './auth.routes'
+import userRoutes from './user.routes'
+import storeRoutes from './store.routes'
 import productRoutes from './product.routes'
 import categoryRoutes from './category.routes'
 import chatRoutes from './chat.routes'
@@ -16,6 +18,14 @@ const routes: Route[] = [
   {
     path: '/auth',
     route: authRoutes,
+  },
+  {
+    path: '/user',
+    route: userRoutes,
+  },
+  {
+    path: '/store',
+    route: storeRoutes,
   },
   {
     path: '/product',

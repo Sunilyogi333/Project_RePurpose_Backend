@@ -43,7 +43,7 @@ export class RegisterUserDTO {
 }
 
 // DTO for Updating User Information
-export class UpdateUserDTO {
+export class EditUserDTO {
   @IsNotEmpty()
   @IsString()
   @MaxLength(255)
@@ -57,23 +57,6 @@ export class UpdateUserDTO {
   @IsOptional()
   @IsPhoneNumber()
   phoneNumber?: string
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(1024)
-  profileImage?: string
-
-  @IsOptional()
-  @IsEnum(ROLE)
-  role?: ROLE
-
-  @IsOptional()
-  @IsBoolean()
-  isEmailVerified?: boolean
-
-  @IsOptional()
-  @IsNumber()
-  totalRewardPoints?: number
 }
 
 // DTO for User Verification
@@ -101,4 +84,10 @@ export class CompleteProfileDTO {
   @IsOptional()
   @IsString()
   storeName?: string
+}
+
+export class UpdateProfilePictureDTO {
+  @IsString()
+  @IsNotEmpty({ message: 'Profile picture path is required' })
+  profilePicture!: string;
 }

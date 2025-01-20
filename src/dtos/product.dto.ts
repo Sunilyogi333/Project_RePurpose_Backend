@@ -19,18 +19,18 @@ export class CreateProductDTO {
   @IsString()
   description: string;
 
-  @Transform(({ value }) => parseFloat(value)) // Transform to number
+  @Transform(({ value }) => parseFloat(value))
   @IsNumber({}, { message: 'Price must be a number' })
   @Min(0, { message: 'Price must be a non-negative number' })
   price: number;
 
   @IsArray()
   @IsOptional()
-  images?: string[]; // URLs of uploaded images
+  images?: string[]; 
 
   @IsString()
   @IsOptional()
-  partName?: 'Interior' | 'Exterior'; // Enum validation is implicit in the schema
+  partName?: 'Interior' | 'Exterior'; 
 
   @IsOptional()
   ecoFriendly?: boolean;
@@ -50,10 +50,10 @@ export class CreateProductDTO {
     | 'Camel' 
     | 'Linen' 
     | 'Wool' 
-    | 'Cupro'; // Enum validation via literal types
+    | 'Cupro'; 
 
   @IsArray()
-  @IsMongoId({ each: true }) // Validate each item in the array
+  @IsMongoId({ each: true }) 
   @IsOptional()
   categories?: string[];
 
@@ -72,7 +72,7 @@ export class CreateProductDTO {
   code?: string;
 
   @IsMongoId()
-  seller: string; // Required field
+  seller: string; 
 
   @IsOptional()
   @IsMongoId()

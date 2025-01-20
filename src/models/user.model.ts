@@ -1,4 +1,4 @@
-import { Schema, model, Document } from 'mongoose'
+import { Schema, model} from 'mongoose'
 import { IUser } from '../interfaces/user.interface'
 import { ROLE } from '../constants/enum'
 import { BcryptService } from '../utils/bcrypt.utils'
@@ -46,7 +46,7 @@ const userSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: [ROLE.MEMBER, ROLE.SELLER, ROLE.ADMIN],
+      enum: [ROLE.STORE, ROLE.SELLER, ROLE.ADMIN],
       default: ROLE.SELLER,
     },
     storeName: {
@@ -57,6 +57,9 @@ const userSchema = new Schema<IUser>(
     isEmailVerified: {
       type: Boolean,
       default: false,
+    },
+    isStoreVerified: {
+      type:Boolean, default:false
     },
     isProfileCompleted: {
       type: Boolean,
