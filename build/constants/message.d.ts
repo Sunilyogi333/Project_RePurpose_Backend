@@ -1,0 +1,27 @@
+export declare const Message: {
+    passwordShouldStrong: string;
+    passwordShouldMatch: string;
+    validPhoneNumber: string;
+    notFound: string;
+    invalidCredentials: string;
+    emailOrPhoneAlreadyInUse: string;
+    loginSuccessfully: string;
+    logoutSuccessfully: string;
+    refresh: string;
+    adminRefresh: string;
+    invalidOTP: string;
+    OTPExpired: string;
+    accountVerified: string;
+    accountAlreadyVerified: string;
+    accountNotVerified: string;
+    invalidOldPassword: string;
+    checkYourEmailForOTP: string;
+    passwordReset: string;
+    server: string;
+    unAuthorized: string;
+    mediaUploaded: string;
+    welcomeMessage: string;
+    emailOrPassword: string;
+    NOT_AUTHORIZED_MESSAGE: string;
+    tokenExpire: string;
+};
