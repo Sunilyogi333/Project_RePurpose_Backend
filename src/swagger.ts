@@ -1,5 +1,4 @@
 import swaggerJSDoc from 'swagger-jsdoc'
-import path from 'path'
 
 const swaggerDefinition = {
   openapi: '3.0.0',
@@ -32,7 +31,7 @@ const swaggerDefinition = {
 
 const options = {
   swaggerDefinition,
-  apis: [path.join(__dirname, 'swagger/**/*.yaml')], 
+  apis: ['src/swagger/**/*.yaml'],
 }
 
 const swaggerSpec = swaggerJSDoc(options)
