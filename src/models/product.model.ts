@@ -29,8 +29,8 @@ const productSchema = new Schema<IProduct>(
         'Camel',
         'Linen',
         'Wool',
-        'Cupro'
-      ]
+        'Cupro',
+      ],
     },
     categories: [{ type: Schema.Types.ObjectId, ref: 'Category', required: true }],
     attributes: [{ name: { type: String }, value: { type: String } }],

@@ -24,7 +24,7 @@ export class AuthController {
 
   async register(req: Request, res: Response): Promise<void> {
     const { firstName, lastName, email, password, role, phoneNumber } = req.body
-    const storeName =req.body?.storeName || ''
+    const storeName = req.body?.storeName || ''
     const address = req.body?.address || ''
 
     const userData = { firstName, lastName, email, password, role, phoneNumber, storeName, address }
@@ -33,7 +33,7 @@ export class AuthController {
     const otp = generateOtp()
 
     const otpDocument = new OTP({
-      userId: newUser._id,
+      userID: newUser._id,
       otp,
       expiresAt: Date.now() + 5 * 60 * 1000,
     })
@@ -57,16 +57,19 @@ export class AuthController {
   }
 
   async verifyOtp(req: Request, res: Response): Promise<void> {
-    const { userId, otp } = req.body
+    const { userID, otp } = req.body
+    console.log('req body', req.body)
 
     try {
       // Validate request
-      if (!userId || !otp) {
+      if (!userID || !otp) {
         throw HttpException.BadRequest('User ID and OTP are required.')
       }
 
+      console.log('userID', userID)
+
       // Find the OTP record
-      const otpRecord = await OTP.findOne({ userId })
+      const otpRecord = await OTP.findOne({ userID: userID })
       if (!otpRecord) {
         throw HttpException.NotFound('OTP record not found.')
       }
@@ -83,10 +86,10 @@ export class AuthController {
       }
 
       // OTP is valid, proceed with user verification
-      const updatedUser = await this.userService.updateUser(userId, { isEmailVerified: true })
+      const updatedUser = await this.userService.updateUser(userID, { isEmailVerified: true })
 
       // Remove the OTP record after successful verification
-      await OTP.deleteOne({ userId })
+      await OTP.deleteOne({ userId: userID })
 
       // Send success response
       res.status(StatusCodes.SUCCESS).json(
@@ -102,6 +105,65 @@ export class AuthController {
     } catch (error) {
       console.error('Error during OTP verification:', error)
       throw HttpException.InternalServer('Unable to verify OTP')
+    }
+  }
+
+  // Resend OTP to user if email is verified
+  async resendOTP(req: Request, res: Response): Promise<void> {
+    const { userID } = req.body
+
+    try {
+      // Validate request
+      if (!userID) {
+        throw HttpException.BadRequest('User ID is required.')
+      }
+
+      // Find the user by userID
+      const user = await this.userService.findUserById(userID)
+      if (!user) {
+        throw HttpException.NotFound('User not found.')
+      }
+
+      // Check if the user is already verified
+      if (user.isEmailVerified) {
+        throw HttpException.BadRequest('Email already verified.')
+      }
+
+      // Check if the user already has an OTP
+      const existingOtp = await OTP.findOne({ userID: user._id })
+      if (existingOtp) {
+        // If an OTP already exists, delete it
+        await OTP.deleteOne({ userID: user._id })
+      }
+
+      // Generate new OTP
+      const otp = generateOtp()
+
+      // Create a new OTP record for the user
+      const otpDocument = new OTP({
+        userID: user._id,
+        otp,
+        expiresAt: Date.now() + 5 * 60 * 1000, // OTP expires in 5 minutes
+      })
+      await otpDocument.save()
+
+      // Send OTP email
+      const emailContent = `<p>Dear ${user.firstName},</p>
+                            <p>Your OTP for email verification is: <b>${otp}</b></p>
+                            <p>This OTP is valid for 5 minutes.</p>`
+      await sendEmail(user.email, 'Email Verification OTP', emailContent)
+
+      // Send response
+      res.status(StatusCodes.SUCCESS).json(
+        createResponse(true, StatusCodes.SUCCESS, 'OTP resent successfully', {
+          userID: user._id,
+          firstName: user.firstName,
+          email: user.email,
+        })
+      )
+    } catch (error) {
+      console.error('Error during OTP resend:', error)
+      throw HttpException.InternalServer('Unable to resend OTP')
     }
   }
 
@@ -332,30 +394,30 @@ export class AuthController {
   }
 
   async changePassword(req: Request, res: Response): Promise<void> {
-    const { oldPassword, newPassword } = req.body;
-    const userId = req.user._id;
+    const { oldPassword, newPassword } = req.body
+    const userId = req.user._id
 
     try {
-        const user = await this.userService.findUserById(userId);
-        
-        if (!user) {
-            throw HttpException.NotFound('User not found');
-        }
+      const user = await this.userService.findUserById(userId)
 
-        const isMatch = await user.isPasswordCorrect(oldPassword);
-        if (!isMatch) {
-            throw HttpException.BadRequest('Old password is incorrect');
-        }
+      if (!user) {
+        throw HttpException.NotFound('User not found')
+      }
 
-        user.password = newPassword; // Make sure password hashing is handled in the user schema
-        await user.save(); // Save the updated user
+      const isMatch = await user.isPasswordCorrect(oldPassword)
+      if (!isMatch) {
+        throw HttpException.BadRequest('Old password is incorrect')
+      }
 
-        res.status(StatusCodes.SUCCESS).json(createResponse(true, 200, 'Password changed successfully.'));
+      user.password = newPassword // Make sure password hashing is handled in the user schema
+      await user.save() // Save the updated user
+
+      res.status(StatusCodes.SUCCESS).json(createResponse(true, 200, 'Password changed successfully.'))
     } catch (error) {
-        console.log('An error occurred', error);
-        throw HttpException.InternalServer('Internal Server Error');
+      console.log('An error occurred', error)
+      throw HttpException.InternalServer('Internal Server Error')
     }
-}
+  }
 
   async googleAuth(req: Request, res: Response): Promise<void> {
     // This route only initiates Google authentication.

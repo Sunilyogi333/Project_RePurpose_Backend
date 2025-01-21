@@ -4,10 +4,10 @@ export enum Environment {
 }
 
 export enum ROLE {
-  ADMIN = 'ADMIN',
-  MEMBER = 'MEMBER',
-  SELLER = 'SELLER',
-  STORE = 'STORE'
+  ADMIN = 'admin',
+  MEMBER = 'member',
+  SELLER = 'seller',
+  STORE = 'store'
 }
 
 export enum Gender {

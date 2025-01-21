@@ -3,7 +3,7 @@ import swaggerJSDoc from 'swagger-jsdoc'
 const swaggerDefinition = {
   openapi: '3.0.0',
   info: {
-    title: 'CHILD-THRIFT-STORE API',
+    title: 'RePurpose API',
     version: '1.0.0',
   },
   components: {
@@ -19,11 +19,11 @@ const swaggerDefinition = {
   },
   servers: [
     {
-      url: 'http://localhost:5000/api/v1',
+      url: 'http://localhost:5000/api/',
       description: 'Development server',
     },
     {
-      url: 'https://child-thrift-backend.vercel.app/api/v1',
+      url: 'https://project-repurpose-backend.onrender.com/api/',
       description: 'Production server',
     },
   ],
@@ -31,7 +31,7 @@ const swaggerDefinition = {
 
 const options = {
   swaggerDefinition,
-  apis: ['src/routes/**/*.ts'],
+  apis: ['src/swagger/**/*.yaml'],
 }
 
 const swaggerSpec = swaggerJSDoc(options)

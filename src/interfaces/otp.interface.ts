@@ -2,7 +2,7 @@ import { Document, Schema } from 'mongoose'
 
 // Define the interface for OTP
 export interface IOTP extends Document {
-  userId: Schema.Types.ObjectId
+  userID: Schema.Types.ObjectId
   otp: string
   expiresAt: Date
   createdAt?: Date // Automatically managed by Mongoose

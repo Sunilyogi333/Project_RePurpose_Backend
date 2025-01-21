@@ -4,7 +4,7 @@ import { BcryptService } from '../utils/bcrypt.utils'
 
 const otpSchema = new Schema<IOTP>(
   {
-    userId: {
+    userID: {
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,

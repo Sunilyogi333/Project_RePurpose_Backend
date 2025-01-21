@@ -1,0 +1,312 @@
+tags:
+  - name: 'Auth'
+    description: 'Authentication related endpoints for user registration, login, OTP verification, password management, and more.'
+
+paths:
+  /auth/register:
+    post:
+      summary: User registration
+      description: Registers a new user by providing details like name, email, password, and role.
+      operationId: registerUser
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  description: The first name of the user
+                lastName:
+                  type: string
+                  description: The last name of the user
+                email:
+                  type: string
+                  description: The email address of the user
+                password:
+                  type: string
+                  description: The password for the user
+                role:
+                  type: string
+                  enum: [MEMBER, SELLER, ADMIN]
+                  description: The role of the user
+                phoneNumber:
+                  type: string
+                  description: The phone number of the user
+                storeName:
+                  type: string
+                  description: The store name of the seller (if applicable)
+                address:
+                  type: string
+                  description: The address of the user (if applicable)
+      responses:
+        '201':
+          description: Successfully registered user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: User ID
+                  firstName:
+                    type: string
+                  lastName:
+                    type: string
+                  email:
+                    type: string
+                  role:
+                    type: string
+        '400':
+          description: Bad request
+
+  /auth/verify-otp:
+    post:
+      summary: OTP verification
+      description: Verifies the OTP sent to the user's email for registration.
+      operationId: verifyOtp
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userID:
+                  type: string
+                  description: The user ID for OTP verification
+                otp:
+                  type: string
+                  description: The OTP received by the user
+      responses:
+        '200':
+          description: OTP verification successful
+        '400':
+          description: Invalid OTP or OTP expired
+        '404':
+          description: OTP record not found
+        '500':
+          description: Internal server error
+
+  /auth/resend-otp:
+    post:
+      summary: Resend OTP
+      description: Resends the OTP for email verification if the user hasn't verified their email.
+      operationId: resendOtp
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userID:
+                  type: string
+                  description: The user ID to resend OTP
+      responses:
+        '200':
+          description: OTP resent successfully
+        '400':
+          description: Invalid user ID or email already verified
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+
+  /auth/login:
+    post:
+      summary: User login
+      description: Logs in the user with email and password.
+      operationId: loginUser
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: The user's email address
+                password:
+                  type: string
+                  description: The user's password
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: User ID
+                  token:
+                    type: string
+                    description: JWT access token
+                  firstName:
+                    type: string
+                  lastName:
+                    type: string
+                  email:
+                    type: string
+                  role:
+                    type: string
+        '400':
+          description: Invalid email or password
+        '403':
+          description: Email not verified
+        '500':
+          description: Internal server error
+
+  /auth/refresh:
+    get:
+      summary: Token refresh
+      description: Refreshes the access token using the refresh token from cookies.
+      operationId: refreshToken
+      tags:
+        - Auth
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: New JWT access token
+        '403':
+          description: No refresh token provided or invalid refresh token
+
+  /auth/logout:
+    post:
+      summary: User logout
+      description: Logs the user out and invalidates the session.
+      operationId: logoutUser
+      tags:
+        - Auth
+      responses:
+        '200':
+          description: Logout successful
+        '401':
+          description: Unauthorized (if not logged in)
+
+  /auth/forgot-password:
+    post:
+      summary: Forgot password
+      description: Sends a password reset email to the user.
+      operationId: forgotPassword
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: The user's email address
+      responses:
+        '200':
+          description: Password reset email sent
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+
+  /auth/reset-password:
+    post:
+      summary: Reset password
+      description: Resets the user's password using a reset token.
+      operationId: resetPassword
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  description: The reset token sent to the user
+                newPassword:
+                  type: string
+                  description: The new password for the user
+      responses:
+        '200':
+          description: Password successfully reset
+        '400':
+          description: Invalid token or weak password
+        '500':
+          description: Internal server error
+
+  /auth/change-password:
+    patch:
+      summary: Change password
+      description: Allows the user to change their password.
+      operationId: changePassword
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currentPassword:
+                  type: string
+                  description: The current password of the user
+                newPassword:
+                  type: string
+                  description: The new password for the user
+      responses:
+        '200':
+          description: Password changed successfully
+        '400':
+          description: Invalid password
+        '500':
+          description: Internal server error
+
+  /auth/google:
+    get:
+      summary: Google authentication
+      description: Initiates the Google authentication process.
+      operationId: googleAuth
+      tags:
+        - Auth
+      responses:
+        '302':
+          description: Redirect to Google authentication page
+        '401':
+          description: Unauthorized
+
+  /auth/google/callback:
+    get:
+      summary: Google authentication callback
+      description: Handles the callback after the user authenticates with Google.
+      operationId: googleAuthCallback
+      tags:
+        - Auth
+      responses:
+        '200':
+          description: Google authentication successful
+        '401':
+          description: Unauthorized

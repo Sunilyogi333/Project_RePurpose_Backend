@@ -4,10 +4,11 @@ import { AuthController } from '../controllers/auth/auth.controller';
 import { RegisterUserDTO } from '../dtos/user.dto';
 import { LoginDTO } from '../dtos/auth.dto';
 import { VerifyOtpDTO } from '../dtos/otp.dto';
-import RequestValidator from '../middlewares/Request.Validator'; // Validation middleware
-import authentication from '../middlewares/authentication.middleware'; // Auth middleware
-import HttpException from '../utils/HttpException'; // Custom HTTP exception handler
-import { catchAsync } from '../utils/catchAsync'; // Utility to handle async errors
+import { ResendOtpDTO } from '../dtos/otp.dto';  
+import RequestValidator from '../middlewares/Request.Validator'; 
+import authentication from '../middlewares/authentication.middleware'; 
+import HttpException from '../utils/HttpException'; 
+import { catchAsync } from '../utils/catchAsync'; 
 import { container } from 'tsyringe';
 import passport from '../config/passport.config';
 
@@ -26,6 +27,12 @@ router.post(
   '/verify-otp',
   RequestValidator.validate(VerifyOtpDTO), 
   catchAsync(iocAuthController.verifyOtp.bind(iocAuthController))
+);
+
+router.post(
+  '/resend-otp',
+  RequestValidator.validate(ResendOtpDTO), // Validate the resend OTP request
+  catchAsync(iocAuthController.resendOTP.bind(iocAuthController)) // Call the resendOtp method in AuthController
 );
 
 // User login route

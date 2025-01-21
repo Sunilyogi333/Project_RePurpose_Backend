@@ -18,23 +18,18 @@ import { ROLE } from '../constants/enum'
 export class RegisterUserDTO {
   @IsNotEmpty()
   @IsString()
-  @MaxLength(255)
   firstName: string
 
   @IsNotEmpty()
   @IsString()
-  @MaxLength(255)
   lastName: string
 
   @IsNotEmpty()
   @IsEmail()
-  @MaxLength(255)
   email: string
 
   @IsNotEmpty()
   @IsString()
-  @MinLength(4)
-  @MaxLength(1024)
   password: string
 
   @IsNotEmpty()
@@ -42,24 +37,23 @@ export class RegisterUserDTO {
   phoneNumber: string
 
   @IsString()
-  @MaxLength(255)
   storeName: string
 
   @IsString()
-  @MaxLength(255)
   address: string
+
+  @IsString()
+  role: string
 }
 
 // DTO for Updating User Information
 export class EditUserDTO {
   @IsNotEmpty()
   @IsString()
-  @MaxLength(255)
   firstName: string
 
   @IsNotEmpty()
   @IsString()
-  @MaxLength(255)
   lastName: string
 
   @IsOptional()
