@@ -4,6 +4,8 @@ export declare class RegisterUserDTO {
     email: string;
     password: string;
     phoneNumber: string;
+    storeName: string;
+    address: string;
 }
 export declare class EditUserDTO {
     firstName: string;

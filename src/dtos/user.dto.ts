@@ -40,6 +40,14 @@ export class RegisterUserDTO {
   @IsNotEmpty()
   @IsPhoneNumber() // Assuming you want to validate it as a proper phone number
   phoneNumber: string
+
+  @IsString()
+  @MaxLength(255)
+  storeName: string
+
+  @IsString()
+  @MaxLength(255)
+  address: string
 }
 
 // DTO for Updating User Information

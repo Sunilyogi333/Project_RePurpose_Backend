@@ -24,8 +24,10 @@ export class AuthController {
 
   async register(req: Request, res: Response): Promise<void> {
     const { firstName, lastName, email, password, role, phoneNumber } = req.body
+    const storeName =req.body?.storeName || ''
+    const address = req.body?.address || ''
 
-    const userData = { firstName, lastName, email, password, role, phoneNumber }
+    const userData = { firstName, lastName, email, password, role, phoneNumber, storeName, address }
     const newUser = await this.userService.createUser(userData)
 
     const otp = generateOtp()

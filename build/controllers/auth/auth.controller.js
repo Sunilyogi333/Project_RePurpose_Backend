@@ -64,8 +64,11 @@ let AuthController = class AuthController {
     }
     register(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a, _b;
             const { firstName, lastName, email, password, role, phoneNumber } = req.body;
-            const userData = { firstName, lastName, email, password, role, phoneNumber };
+            const storeName = ((_a = req.body) === null || _a === void 0 ? void 0 : _a.storeName) || '';
+            const address = ((_b = req.body) === null || _b === void 0 ? void 0 : _b.address) || '';
+            const userData = { firstName, lastName, email, password, role, phoneNumber, storeName, address };
             const newUser = yield this.userService.createUser(userData);
             const otp = (0, generateOtp_1.default)();
             const otpDocument = new otp_model_1.default({
