@@ -1,0 +1,236 @@
+tags:
+  - name: 'Store'
+    description: 'Store-related endpoints for creating, fetching, updating, approving, and rejecting stores.'
+
+paths:
+  /stores/create:
+    post:
+      summary: Create a new store
+      description: Only authenticated users with the `STORE` role can create a store.
+      operationId: createStore
+      tags:
+        - Store
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Name of the store
+                description:
+                  type: string
+                  description: Description of the store
+                address:
+                  type: string
+                  description: Store address
+                contactNumber:
+                  type: string
+                  description: Store contact number
+      responses:
+        '201':
+          description: Store successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Store created successfully
+                  data:
+                    type: object
+                    description: Created store data
+        '400':
+          description: Bad request if validation fails
+        '500':
+          description: Internal server error
+
+  /stores:
+    get:
+      summary: Get all stores
+      description: Public endpoint to get all stores.
+      operationId: getStores
+      tags:
+        - Store
+      responses:
+        '200':
+          description: Successfully fetched all stores
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Stores fetched successfully
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      description: Store data
+        '500':
+          description: Internal server error
+
+  /stores/{storeId}:
+    get:
+      summary: Get a specific store by ID
+      description: Public endpoint to get a store by its ID.
+      operationId: getStore
+      tags:
+        - Store
+      parameters:
+        - name: storeId
+          in: path
+          required: true
+          description: The ID of the store to fetch
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully fetched the store
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Store fetched successfully
+                  data:
+                    type: object
+                    description: Store data
+        '404':
+          description: Store not found
+        '500':
+          description: Internal server error
+
+    patch:
+      summary: Update a store
+      description: Only the store owner or an admin can update the store details.
+      operationId: updateStore
+      tags:
+        - Store
+      parameters:
+        - name: storeId
+          in: path
+          required: true
+          description: The ID of the store to update
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: New name for the store
+                description:
+                  type: string
+                  description: Updated description for the store
+                contactNumber:
+                  type: string
+                  description: Updated contact number for the store
+      responses:
+        '200':
+          description: Store updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Store updated successfully
+                  data:
+                    type: object
+                    description: Updated store data
+        '400':
+          description: Bad request if validation fails
+        '404':
+          description: Store not found
+        '500':
+          description: Internal server error
+
+  /stores/{storeId}/approve:
+    patch:
+      summary: Approve a store
+      description: Only admins can approve a store.
+      operationId: approveStore
+      tags:
+        - Store
+      parameters:
+        - name: storeId
+          in: path
+          required: true
+          description: The ID of the store to approve
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Store approved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Store approved successfully
+        '404':
+          description: Store not found
+        '500':
+          description: Internal server error
+
+  /stores/{storeId}/reject:
+    delete:
+      summary: Reject and delete a store
+      description: Only admins can reject and delete a store.
+      operationId: rejectStore
+      tags:
+        - Store
+      parameters:
+        - name: storeId
+          in: path
+          required: true
+          description: The ID of the store to reject and delete
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Store rejected and deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Store rejected and deleted successfully
+        '404':
+          description: Store not found
+        '500':
+          description: Internal server error

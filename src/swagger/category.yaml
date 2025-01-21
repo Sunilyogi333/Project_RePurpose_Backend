@@ -1,0 +1,295 @@
+tags:
+  - name: 'Categories'
+    description: 'Operations related to managing categories and subcategories in the thrift store.'
+
+paths:
+  /categories:
+    get:
+      summary: List all categories
+      description: Retrieves a list of all categories.
+      operationId: listAllCategories
+      tags:
+        - Categories
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successfully fetched all categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Categories fetched successfully"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: "60a781d450df6f001234abcd"
+                        name:
+                          type: string
+                          example: "Clothing"
+                        description:
+                          type: string
+                          example: "All types of clothing for kids"
+    post:
+      summary: Create a new category
+      description: Creates a new category for the thrift store.
+      operationId: createCategory
+      tags:
+        - Categories
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Name of the category
+                  example: "Clothing"
+                description:
+                  type: string
+                  description: Description of the category
+                  example: "All types of clothing for kids"
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Successfully created category
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Category created successfully"
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "60a781d450df6f001234abcd"
+                      name:
+                        type: string
+                        example: "Clothing"
+                      description:
+                        type: string
+                        example: "All types of clothing for kids"
+
+  /categories/{id}:
+    get:
+      summary: Get category by ID
+      description: Retrieves a single category by its ID.
+      operationId: getCategoryById
+      tags:
+        - Categories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the category to retrieve.
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successfully fetched category details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Category found"
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "60a781d450df6f001234abcd"
+                      name:
+                        type: string
+                        example: "Clothing"
+                      description:
+                        type: string
+                        example: "All types of clothing for kids"
+        '404':
+          description: Category not found
+    patch:
+      summary: Update category by ID
+      description: Updates an existing category by its ID.
+      operationId: updateCategory
+      tags:
+        - Categories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the category to update.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Name of the category
+                  example: "Updated Clothing"
+                description:
+                  type: string
+                  description: Updated description for the category
+                  example: "Updated clothing items for kids"
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successfully updated category
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Category updated successfully"
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "60a781d450df6f001234abcd"
+                      name:
+                        type: string
+                        example: "Updated Clothing"
+                      description:
+                        type: string
+                        example: "Updated clothing items for kids"
+        '404':
+          description: Category not found
+    delete:
+      summary: Delete category by ID
+      description: Deletes a category by its ID.
+      operationId: deleteCategory
+      tags:
+        - Categories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the category to delete.
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Successfully deleted category
+        '404':
+          description: Category not found
+
+  /categories/{id}/subcategory:
+    post:
+      summary: Add a subcategory to a category
+      description: Adds a new subcategory to a specific category.
+      operationId: addSubcategory
+      tags:
+        - Categories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the category to which the subcategory will be added.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subcategoryId:
+                  type: string
+                  description: The ID of the subcategory to add.
+                  example: "60a781d450df6f001234efgh"
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Subcategory added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Subcategory added successfully"
+        '400':
+          description: Bad request, invalid parameters
+    delete:
+      summary: Remove a subcategory from a category
+      description: Removes a subcategory from an existing category.
+      operationId: removeSubcategory
+      tags:
+        - Categories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the category to update.
+          schema:
+            type: string
+        - name: subcategoryId
+          in: query
+          required: true
+          description: The ID of the subcategory to be removed.
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Subcategory removed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Subcategory removed successfully"
+        '400':
+          description: Bad request, invalid parameters

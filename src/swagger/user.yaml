@@ -1,0 +1,143 @@
+tags:
+  - name: 'Users'
+    description: 'User-related endpoints for fetching and updating user details, profile pictures, and more.'
+
+paths:
+  /users/me:
+    get:
+      summary: Get current user details
+      description: Fetch details of the currently authenticated user.
+      operationId: getCurrentUser
+      tags:
+        - Users
+      responses:
+        '200':
+          description: Current user details successfully fetched
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Current user fetched successfully
+                  data:
+                    type: object
+                    description: User data
+        '500':
+          description: Internal server error
+
+  /users/profile-picture:
+    patch:
+      summary: Update profile picture
+      description: Upload a new profile picture for the user.
+      operationId: editProfilePicture
+      tags:
+        - Users
+      parameters:
+        - name: profilePicture
+          in: formData
+          required: true
+          schema:
+            type: string
+            format: binary
+      responses:
+        '200':
+          description: Profile picture updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Profile picture updated successfully
+                  data:
+                    type: object
+                    description: Updated user data
+        '400':
+          description: Bad request if no profile picture is provided
+        '404':
+          description: Image upload to Cloudinary failed
+        '500':
+          description: Internal server error
+
+  /users/edit:
+    patch:
+      summary: Edit account details
+      description: Edit the account details of the authenticated user (first name, last name, phone number).
+      operationId: editAccountDetails
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  description: The user's first name
+                lastName:
+                  type: string
+                  description: The user's last name
+                phoneNumber:
+                  type: string
+                  description: The user's phone number
+      responses:
+        '200':
+          description: Account details successfully updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: User details updated successfully
+                  data:
+                    type: object
+                    description: Updated user data
+        '400':
+          description: Bad request if any required fields are missing
+        '500':
+          description: Internal server error
+
+  /users/all:
+    get:
+      summary: Get all users (admin only)
+      description: Fetch details of all users in the platform (admin access only).
+      operationId: getAllUsers
+      tags:
+        - Users
+      responses:
+        '200':
+          description: Successfully fetched all users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Users fetched successfully
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      description: User data
+        '500':
+          description: Internal server error
