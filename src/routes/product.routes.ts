@@ -15,15 +15,16 @@ const productController = container.resolve(ProductController);
 router.post(
   '/',
   authentication([ROLE.ADMIN, ROLE.SELLER]), // Authorization based on role
-  upload.array('images', 3), // Limit to 3 images
-  RequestValidator.validate(CreateProductDTO), // Validate request body
+  upload.array('images', 5), // Limit to 5 images
+  // RequestValidator.validate(CreateProductDTO), // Validate request body
   catchAsync(productController.createProduct.bind(productController))
 );
+
 
 // Get product by ID
 router.get(
   '/:id',
-  authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.MEMBER]),
+  authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.MEMBER, ROLE.STORE]),
   catchAsync(productController.getProduct.bind(productController))
 );
 
@@ -45,8 +46,15 @@ router.delete(
 // Get all products
 router.get(
   '/',
-  authentication([ROLE.ADMIN, ROLE.MEMBER, ROLE.SELLER]),
+  authentication([ROLE.ADMIN, ROLE.MEMBER, ROLE.SELLER, ROLE.STORE]),
   catchAsync(productController.getProducts.bind(productController))
+);
+
+// Get products by seller ID
+router.get(
+  '/seller/:sellerId',
+  authentication([ROLE.ADMIN, ROLE.SELLER]), // Only admin and sellers can view products of a specific seller
+  catchAsync(productController.getProductsBySellerId.bind(productController))
 );
 
 // Get reward points

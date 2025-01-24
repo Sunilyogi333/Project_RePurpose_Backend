@@ -71,13 +71,6 @@ export class CreateProductDTO {
   @IsOptional()
   code?: string;
 
-  @IsMongoId()
-  seller: string; 
-
-  @IsOptional()
-  @IsMongoId()
-  postedBy?: string;
-
   @IsEnum(ProductStatus)
   @IsOptional()
   status?: ProductStatus = ProductStatus.AVAILABLE;

@@ -8,6 +8,7 @@ export declare class ProductController {
     updateProduct(req: Request, res: Response): Promise<void>;
     deleteProduct(req: Request, res: Response): Promise<void>;
     getProducts(req: Request, res: Response): Promise<void>;
+    getProductsBySellerId(req: Request, res: Response): Promise<void>;
     getRewardPoints(req: Request, res: Response): Promise<Response>;
     getRewardPoint: (inputData: Object) => Promise<unknown>;
 }

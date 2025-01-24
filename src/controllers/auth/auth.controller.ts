@@ -56,50 +56,70 @@ export class AuthController {
     )
   }
 
-  async verifyOtp(req: Request, res: Response): Promise<void> {
+  async verifyOtp(req: Request, res: Response): Promise<Response> {
     const { userID, otp } = req.body
     console.log('req body', req.body)
-
+  
     try {
       // Validate request
       if (!userID || !otp) {
         throw HttpException.BadRequest('User ID and OTP are required.')
       }
-
+  
       console.log('userID', userID)
-
+  
       // Find the OTP record
       const otpRecord = await OTP.findOne({ userID: userID })
       if (!otpRecord) {
         throw HttpException.NotFound('OTP record not found.')
       }
-
+  
       // Check if the OTP is expired
       if (otpRecord.expiresAt.getTime() < Date.now()) {
         throw HttpException.BadRequest('OTP has expired.')
       }
-
+  
       // Verify the OTP
       const isOtpValid = await otpRecord.isOtpCorrect(otp)
       if (!isOtpValid) {
         throw HttpException.Unauthorized('Invalid OTP.')
       }
-
+  
       // OTP is valid, proceed with user verification
       const updatedUser = await this.userService.updateUser(userID, { isEmailVerified: true })
-
+      if (!updatedUser) {
+        throw HttpException.BadRequest('Failed to update the user. The user might not exist or there was an issue with the update.');
+      }
+  
       // Remove the OTP record after successful verification
       await OTP.deleteOne({ userId: userID })
-
-      // Send success response
-      res.status(StatusCodes.SUCCESS).json(
+  
+      // Generate tokens
+      const accessToken = await updatedUser.generateAccessToken()
+      const refreshToken = await updatedUser.generateRefreshToken()
+  
+      // Save the refresh token to the user's record
+      updatedUser.refreshToken = refreshToken
+      await updatedUser.save()
+  
+      // Set the refresh token in a cookie
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      })
+  
+      // Send success response with tokens
+      return res.status(StatusCodes.SUCCESS).json(
         createResponse(true, StatusCodes.SUCCESS, 'Email verified and user successfully updated', {
-          id: updatedUser?._id,
-          firstName: updatedUser?.firstName,
-          lastName: updatedUser?.lastName,
-          email: updatedUser?.email,
-          role: updatedUser?.role,
-          isEmailVerified: updatedUser?.isEmailVerified,
+          id: updatedUser._id,
+          token: accessToken,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          email: updatedUser.email,
+          role: updatedUser.role,
+          isEmailVerified: updatedUser.isEmailVerified,
         })
       )
     } catch (error) {
@@ -107,6 +127,7 @@ export class AuthController {
       throw HttpException.InternalServer('Unable to verify OTP')
     }
   }
+  
 
   // Resend OTP to user if email is verified
   async resendOTP(req: Request, res: Response): Promise<void> {
@@ -169,6 +190,7 @@ export class AuthController {
 
   async login(req: Request, res: Response): Promise<void> {
     const { email, password } = req.body
+    console.log("req body", req.body);
 
     // Find the user by email
     const user = await this.userService.findByEmail(email)
@@ -205,19 +227,19 @@ export class AuthController {
     user.refreshToken = refreshToken
     await user.save()
 
-    // Set the refresh token in a cookie
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict', 
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    })
+    });
 
     // Send the response
     res.status(StatusCodes.SUCCESS).json(
       createResponse(true, StatusCodes.SUCCESS, 'Login successful', {
         id: user._id,
         token: accessToken,
+        refreshToken: refreshToken,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,

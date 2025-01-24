@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.io = void 0;
+exports.sellers = exports.stores = exports.io = void 0;
 const express_1 = __importDefault(require("express"));
 require("reflect-metadata");
 const mongoose_connection_1 = __importDefault(require("./db/mongoose.connection"));
@@ -28,7 +28,8 @@ exports.io = new socket_io_1.Server(server, {
     },
 });
 let users = {};
-let stores = {};
+exports.stores = {};
+exports.sellers = {};
 function bootStrap() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -39,11 +40,18 @@ function bootStrap() {
                 socket.on('register', (userId, role) => {
                     users[userId] = socket.id;
                     if (role === 'store') {
-                        if (!stores[role]) {
-                            stores[role] = [];
+                        if (!exports.stores[role]) {
+                            exports.stores[role] = [];
                         }
-                        stores[role].push(socket.id);
+                        exports.stores[role].push(socket.id);
                         console.log(`Store ${userId} registered with socket ID ${socket.id}`);
+                    }
+                    if (role === 'seller') {
+                        if (!exports.sellers[role]) {
+                            exports.sellers[role] = [];
+                        }
+                        exports.sellers[role].push(socket.id);
+                        console.log(`Seller ${userId} registered with socket ID ${socket.id}`);
                     }
                 });
                 socket.on('sendMessage', (data) => {
@@ -65,8 +73,8 @@ function bootStrap() {
                 });
                 socket.on('productAdded', (productData) => {
                     console.log('New product added:', productData);
-                    if (stores['store']) {
-                        stores['store'].forEach((storeSocketId) => {
+                    if (exports.stores['store']) {
+                        exports.stores['store'].forEach((storeSocketId) => {
                             exports.io.to(storeSocketId).emit('receiveNotification', {
                                 message: `New product added by Seller ${productData.sellerId}: ${productData.productName}`,
                                 productId: productData.productId,
@@ -82,11 +90,19 @@ function bootStrap() {
                             break;
                         }
                     }
-                    for (let role in stores) {
-                        const index = stores[role].indexOf(socket.id);
+                    for (let role in exports.stores) {
+                        const index = exports.stores[role].indexOf(socket.id);
                         if (index > -1) {
-                            stores[role].splice(index, 1);
+                            exports.stores[role].splice(index, 1);
                             console.log(`Store disconnected, removed socket ID: ${socket.id}`);
+                            break;
+                        }
+                    }
+                    for (let role in exports.sellers) {
+                        const index = exports.sellers[role].indexOf(socket.id);
+                        if (index > -1) {
+                            exports.sellers[role].splice(index, 1);
+                            console.log(`Seller disconnected, removed socket ID: ${socket.id}`);
                             break;
                         }
                     }

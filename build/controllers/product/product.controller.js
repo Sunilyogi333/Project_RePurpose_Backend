@@ -31,6 +31,7 @@ const tsyringe_1 = require("tsyringe");
 const cloudinary_service_1 = __importDefault(require("../../services/cloudinary.service"));
 const python_shell_1 = require("python-shell");
 const server_1 = require("../../server");
+const server_2 = require("../../server");
 let ProductController = class ProductController {
     constructor(productService) {
         this.getRewardPoint = (inputData) => __awaiter(this, void 0, void 0, function* () {
@@ -55,9 +56,8 @@ let ProductController = class ProductController {
         return __awaiter(this, void 0, void 0, function* () {
             const { name, description, price, category, partName, materialName, ecoFriendly } = req.body;
             const seller = req.user._id;
-            console.log('req.user:', req.user);
+            const ecoFriendlyBoolean = ecoFriendly === 'Yes';
             const images = req.files;
-            console.log('images', images);
             try {
                 const uploadedImages = yield Promise.all(images.map((file) => __awaiter(this, void 0, void 0, function* () {
                     console.log('file path', file.path);
@@ -79,18 +79,22 @@ let ProductController = class ProductController {
                     seller,
                     partName,
                     materialName,
-                    ecoFriendly,
+                    ecoFriendlyBoolean,
                 };
                 const newProduct = yield this.productService.createProduct(productData);
-                const storeIds = yield user_model_1.default.find({ role: 'SELLER' }).select('_id');
+                const sellerDetails = yield user_model_1.default.findById(seller);
                 const notificationMessage = `${newProduct.name} is available!`;
-                storeIds.forEach((store) => {
-                    server_1.io.emit('receiveNotification', {
-                        userId: store._id.toString(),
-                        message: notificationMessage,
-                        productId: newProduct._id,
+                if (server_1.stores['store']) {
+                    server_1.stores['store'].forEach((storeSocketId) => {
+                        server_2.io.to(storeSocketId).emit('receiveNotification', {
+                            message: notificationMessage,
+                            productId: newProduct._id,
+                            firstName: sellerDetails === null || sellerDetails === void 0 ? void 0 : sellerDetails.firstName,
+                            lastName: sellerDetails === null || sellerDetails === void 0 ? void 0 : sellerDetails.lastName,
+                            profilePicture: sellerDetails === null || sellerDetails === void 0 ? void 0 : sellerDetails.profilePicture
+                        });
                     });
-                });
+                }
                 res
                     .status(statusCodes_1.StatusCodes.CREATED)
                     .json((0, response_1.createResponse)(true, statusCodes_1.StatusCodes.CREATED, 'Product created successfully', newProduct));
@@ -185,6 +189,24 @@ let ProductController = class ProductController {
             }
             catch (error) {
                 throw HttpException_1.default.InternalServer('Failed to fetch products');
+            }
+        });
+    }
+    getProductsBySellerId(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { sellerId } = req.params;
+            try {
+                const products = yield this.productService.getProductsBySellerId(sellerId);
+                if (!products || products.length === 0) {
+                    throw HttpException_1.default.NotFound('No products found for this user');
+                }
+                res
+                    .status(statusCodes_1.StatusCodes.SUCCESS)
+                    .json((0, response_1.createResponse)(true, statusCodes_1.StatusCodes.SUCCESS, 'Products fetched successfully', products));
+            }
+            catch (error) {
+                console.error(error);
+                throw HttpException_1.default.InternalServer('Failed to fetch products for the user');
             }
         });
     }

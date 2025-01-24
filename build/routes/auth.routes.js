@@ -23,7 +23,7 @@ router.post('/verify-otp', Request_Validator_1.default.validate(otp_dto_1.Verify
 router.post('/resend-otp', Request_Validator_1.default.validate(otp_dto_2.ResendOtpDTO), (0, catchAsync_1.catchAsync)(iocAuthController.resendOTP.bind(iocAuthController)));
 router.post('/login', Request_Validator_1.default.validate(auth_dto_1.LoginDTO), (0, catchAsync_1.catchAsync)(iocAuthController.login.bind(iocAuthController)));
 router.get('/refresh', (0, catchAsync_1.catchAsync)(iocAuthController.refresh.bind(iocAuthController)));
-router.post('/logout', (0, authentication_middleware_1.default)([enum_1.ROLE.MEMBER, enum_1.ROLE.SELLER, enum_1.ROLE.ADMIN]), (0, catchAsync_1.catchAsync)(iocAuthController.logout.bind(iocAuthController)));
+router.post('/logout', (0, catchAsync_1.catchAsync)(iocAuthController.logout.bind(iocAuthController)));
 router.post('/forgot-password', (0, catchAsync_1.catchAsync)(iocAuthController.forgotPassword.bind(iocAuthController)));
 router.post('/reset-password', (0, catchAsync_1.catchAsync)(iocAuthController.resetForgottenPassword.bind(iocAuthController)));
 router.patch('/change-password', (0, authentication_middleware_1.default)([enum_1.ROLE.MEMBER, enum_1.ROLE.SELLER, enum_1.ROLE.ADMIN]), (0, catchAsync_1.catchAsync)(iocAuthController.changePassword.bind(iocAuthController)));

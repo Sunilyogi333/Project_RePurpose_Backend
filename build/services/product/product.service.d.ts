@@ -5,5 +5,6 @@ export declare class ProductService {
     updateProduct(productId: string, updateData: Partial<IProduct>): Promise<IProduct | null>;
     deleteProduct(productId: string): Promise<void>;
     getAllProducts(): Promise<IProduct[]>;
+    getProductsBySellerId(sellerId: string): Promise<IProduct[]>;
     findProductsByCategory(category: string): Promise<IProduct[]>;
 }

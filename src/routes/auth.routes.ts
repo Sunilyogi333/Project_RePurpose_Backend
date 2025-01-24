@@ -51,7 +51,7 @@ router.get(
 // Logout route
 router.post(
   '/logout',
-  authentication([ROLE.MEMBER, ROLE.SELLER, ROLE.ADMIN]),
+  // authentication([ROLE.MEMBER, ROLE.SELLER, ROLE.ADMIN]),
   catchAsync(iocAuthController.logout.bind(iocAuthController))
 );
 

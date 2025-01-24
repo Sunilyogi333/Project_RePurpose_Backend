@@ -42,18 +42,6 @@ class ChatController {
             }
         });
     }
-    getMessagesForProduct(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const { productId } = req.params;
-            try {
-                const messages = yield chat_service_1.default.getMessagesForProduct(productId);
-                res.status(statusCodes_1.StatusCodes.SUCCESS).json({ success: true, messages });
-            }
-            catch (error) {
-                throw HttpException_1.default.InternalServer('Failed to fetch messages');
-            }
-        });
-    }
 }
 exports.ChatController = ChatController;
 //# sourceMappingURL=chat.controller.js.map

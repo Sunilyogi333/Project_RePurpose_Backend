@@ -33,7 +33,7 @@ export class RegisterUserDTO {
   password: string
 
   @IsNotEmpty()
-  @IsPhoneNumber() // Assuming you want to validate it as a proper phone number
+  // @IsPhoneNumber() // Assuming you want to validate it as a proper phone number
   phoneNumber: string
 
   @IsString()
@@ -57,7 +57,7 @@ export class EditUserDTO {
   lastName: string
 
   @IsOptional()
-  @IsPhoneNumber()
+  // @IsPhoneNumber()
   phoneNumber?: string
 }
 

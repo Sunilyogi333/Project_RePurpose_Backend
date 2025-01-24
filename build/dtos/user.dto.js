@@ -36,7 +36,6 @@ __decorate([
 ], RegisterUserDTO.prototype, "password", void 0);
 __decorate([
     (0, class_validator_1.IsNotEmpty)(),
-    (0, class_validator_1.IsPhoneNumber)(),
     __metadata("design:type", String)
 ], RegisterUserDTO.prototype, "phoneNumber", void 0);
 __decorate([
@@ -66,7 +65,6 @@ __decorate([
 ], EditUserDTO.prototype, "lastName", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsPhoneNumber)(),
     __metadata("design:type", String)
 ], EditUserDTO.prototype, "phoneNumber", void 0);
 class VerifyUserDTO {

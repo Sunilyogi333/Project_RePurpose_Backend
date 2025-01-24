@@ -32,16 +32,4 @@ export class ChatController {
       throw HttpException.InternalServer('Failed to send message');
     }
   }
-
-  // Get all messages for a product
-  async getMessagesForProduct(req: Request, res: Response): Promise<void> {
-    const { productId } = req.params;
-
-    try {
-      const messages = await ChatService.getMessagesForProduct(productId);
-      res.status(StatusCodes.SUCCESS).json({ success: true, messages });
-    } catch (error) {
-      throw HttpException.InternalServer('Failed to fetch messages');
-    }
-  }
 }

@@ -76,15 +76,6 @@ __decorate([
     __metadata("design:type", String)
 ], CreateProductDTO.prototype, "code", void 0);
 __decorate([
-    (0, class_validator_1.IsMongoId)(),
-    __metadata("design:type", String)
-], CreateProductDTO.prototype, "seller", void 0);
-__decorate([
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsMongoId)(),
-    __metadata("design:type", String)
-], CreateProductDTO.prototype, "postedBy", void 0);
-__decorate([
     (0, class_validator_1.IsEnum)(enum_1.PRODUCT_STATUS),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)

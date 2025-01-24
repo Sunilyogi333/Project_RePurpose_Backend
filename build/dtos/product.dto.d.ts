@@ -14,7 +14,5 @@ export declare class CreateProductDTO {
     }[];
     condition?: number;
     code?: string;
-    seller: string;
-    postedBy?: string;
     status?: ProductStatus;
 }

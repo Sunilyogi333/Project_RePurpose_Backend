@@ -18,7 +18,12 @@ const HttpException_1 = __importDefault(require("../../utils/HttpException"));
 class ProductService {
     getProductById(productId) {
         return __awaiter(this, void 0, void 0, function* () {
-            return product_model_1.default.findById(productId);
+            return product_model_1.default.findById(productId)
+                .populate({
+                path: 'seller',
+                select: 'firstName lastName email profilePicture',
+            })
+                .exec();
         });
     }
     createProduct(productData) {
@@ -48,6 +53,20 @@ class ProductService {
     getAllProducts() {
         return __awaiter(this, void 0, void 0, function* () {
             return product_model_1.default.find();
+        });
+    }
+    getProductsBySellerId(sellerId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const products = yield product_model_1.default.find({ seller: sellerId });
+                if (!products || products.length === 0) {
+                    throw HttpException_1.default.NotFound('No products found for this seller');
+                }
+                return products;
+            }
+            catch (error) {
+                throw HttpException_1.default.InternalServer('Failed to fetch products by seller ID');
+            }
         });
     }
     findProductsByCategory(category) {

@@ -111,14 +111,28 @@ let AuthController = class AuthController {
                     throw HttpException_1.default.Unauthorized('Invalid OTP.');
                 }
                 const updatedUser = yield this.userService.updateUser(userID, { isEmailVerified: true });
+                if (!updatedUser) {
+                    throw HttpException_1.default.BadRequest('Failed to update the user. The user might not exist or there was an issue with the update.');
+                }
                 yield otp_model_1.default.deleteOne({ userId: userID });
-                res.status(statusCodes_1.StatusCodes.SUCCESS).json((0, response_1.createResponse)(true, statusCodes_1.StatusCodes.SUCCESS, 'Email verified and user successfully updated', {
-                    id: updatedUser === null || updatedUser === void 0 ? void 0 : updatedUser._id,
-                    firstName: updatedUser === null || updatedUser === void 0 ? void 0 : updatedUser.firstName,
-                    lastName: updatedUser === null || updatedUser === void 0 ? void 0 : updatedUser.lastName,
-                    email: updatedUser === null || updatedUser === void 0 ? void 0 : updatedUser.email,
-                    role: updatedUser === null || updatedUser === void 0 ? void 0 : updatedUser.role,
-                    isEmailVerified: updatedUser === null || updatedUser === void 0 ? void 0 : updatedUser.isEmailVerified,
+                const accessToken = yield updatedUser.generateAccessToken();
+                const refreshToken = yield updatedUser.generateRefreshToken();
+                updatedUser.refreshToken = refreshToken;
+                yield updatedUser.save();
+                res.cookie('refreshToken', refreshToken, {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: 'strict',
+                    maxAge: 7 * 24 * 60 * 60 * 1000,
+                });
+                return res.status(statusCodes_1.StatusCodes.SUCCESS).json((0, response_1.createResponse)(true, statusCodes_1.StatusCodes.SUCCESS, 'Email verified and user successfully updated', {
+                    id: updatedUser._id,
+                    token: accessToken,
+                    firstName: updatedUser.firstName,
+                    lastName: updatedUser.lastName,
+                    email: updatedUser.email,
+                    role: updatedUser.role,
+                    isEmailVerified: updatedUser.isEmailVerified,
                 }));
             }
             catch (error) {
@@ -171,6 +185,7 @@ let AuthController = class AuthController {
     login(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { email, password } = req.body;
+            console.log("req body", req.body);
             const user = yield this.userService.findByEmail(email);
             if (!user) {
                 throw HttpException_1.default.Unauthorized('Invalid email or password');
@@ -191,13 +206,14 @@ let AuthController = class AuthController {
             yield user.save();
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
-                secure: true,
+                secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict',
                 maxAge: 7 * 24 * 60 * 60 * 1000,
             });
             res.status(statusCodes_1.StatusCodes.SUCCESS).json((0, response_1.createResponse)(true, statusCodes_1.StatusCodes.SUCCESS, 'Login successful', {
                 id: user._id,
                 token: accessToken,
+                refreshToken: refreshToken,
                 firstName: user.firstName,
                 lastName: user.lastName,
                 email: user.email,

@@ -15,7 +15,8 @@ export const io = new SocketServer(server, {
 });
 
 let users: { [key: string]: string } = {}; // Mapping of userId to socketId
-let stores: { [key: string]: string[] } = {}; // Mapping of store role to socketIds
+export let stores: { [key: string]: string[] } = {}; // Mapping of store role to socketIds
+export let sellers: { [key: string]: string[] } = {}; // Mapping of seller role to socketIds
 
 async function bootStrap() {
   try {
@@ -30,13 +31,22 @@ async function bootStrap() {
       socket.on('register', (userId: string, role: string) => {
         users[userId] = socket.id; // Store userId and socketId mapping
 
+        // Handle store role
         if (role === 'store') {
-          // If the user is a store, add them to the stores list
           if (!stores[role]) {
             stores[role] = [];
           }
           stores[role].push(socket.id); // Store the socketId for the store
           console.log(`Store ${userId} registered with socket ID ${socket.id}`);
+        }
+
+        // Handle seller role
+        if (role === 'seller') {
+          if (!sellers[role]) {
+            sellers[role] = [];
+          }
+          sellers[role].push(socket.id); // Store the socketId for the seller
+          console.log(`Seller ${userId} registered with socket ID ${socket.id}`);
         }
       });
 
@@ -91,6 +101,16 @@ async function bootStrap() {
           if (index > -1) {
             stores[role].splice(index, 1);
             console.log(`Store disconnected, removed socket ID: ${socket.id}`);
+            break;
+          }
+        }
+
+        // Remove seller from the sellers list on disconnect
+        for (let role in sellers) {
+          const index = sellers[role].indexOf(socket.id);
+          if (index > -1) {
+            sellers[role].splice(index, 1);
+            console.log(`Seller disconnected, removed socket ID: ${socket.id}`);
             break;
           }
         }

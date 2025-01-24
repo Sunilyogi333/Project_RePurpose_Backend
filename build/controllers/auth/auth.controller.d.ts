@@ -4,7 +4,7 @@ export declare class AuthController {
     private userService;
     constructor(userService: UserService);
     register(req: Request, res: Response): Promise<void>;
-    verifyOtp(req: Request, res: Response): Promise<void>;
+    verifyOtp(req: Request, res: Response): Promise<Response>;
     resendOTP(req: Request, res: Response): Promise<void>;
     login(req: Request, res: Response): Promise<void>;
     refresh(req: Request, res: Response): Promise<void>;
