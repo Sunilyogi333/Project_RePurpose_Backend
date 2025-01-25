@@ -1,7 +1,6 @@
-import { Schema, model } from 'mongoose'
+import { Schema, model } from 'mongoose';
 
-interface IChat {
-  productId: Schema.Types.ObjectId;
+export interface IChat {
   sender: Schema.Types.ObjectId;
   receiver: Schema.Types.ObjectId;
   message: string;
@@ -10,14 +9,13 @@ interface IChat {
 
 const chatSchema = new Schema<IChat>(
   {
-    productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
     sender: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     receiver: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     message: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
-)
+);
 
-const Chat = model<IChat>('Chat', chatSchema)
-
-export default Chat
+const Chat = model<IChat>('Chat', chatSchema);
+export default Chat;

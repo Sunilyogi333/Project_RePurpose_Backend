@@ -1,6 +1,5 @@
 import { Schema } from 'mongoose';
-interface IChat {
-    productId: Schema.Types.ObjectId;
+export interface IChat {
     sender: Schema.Types.ObjectId;
     receiver: Schema.Types.ObjectId;
     message: string;

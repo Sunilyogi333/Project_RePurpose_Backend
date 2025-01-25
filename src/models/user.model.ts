@@ -1,8 +1,9 @@
-import { Schema, model} from 'mongoose'
+import { Schema, model } from 'mongoose'
 import { IUser } from '../interfaces/user.interface'
 import { ROLE } from '../constants/enum'
 import { BcryptService } from '../utils/bcrypt.utils'
 import { TokenService } from '../services/token.service'
+import { SELLER_KYC_STATUS } from '../constants/enum'
 
 // Define the User Schema
 const userSchema = new Schema<IUser>(
@@ -28,7 +29,7 @@ const userSchema = new Schema<IUser>(
     password: {
       type: String,
       required: function () {
-        return !this.googleId; 
+        return !this.googleId
       },
       minlength: 4,
       maxlength: 1024,
@@ -36,7 +37,7 @@ const userSchema = new Schema<IUser>(
     googleId: {
       type: String,
       unique: true,
-      sparse:true,
+      sparse: true,
     },
     profilePicture: {
       type: String,
@@ -52,18 +53,20 @@ const userSchema = new Schema<IUser>(
     storeName: {
       type: String,
     },
-    isGoogleUser: { type: Boolean, default: false }, 
+    isGoogleUser: { type: Boolean, default: false },
 
     isEmailVerified: {
       type: Boolean,
       default: false,
     },
-    isStoreVerified: {
-      type:Boolean, default:false
+    storeStatus: {
+      type: String,
+      enum: [SELLER_KYC_STATUS.APPROVED, SELLER_KYC_STATUS.REJECTED, SELLER_KYC_STATUS.PENDING],
+      default: SELLER_KYC_STATUS.PENDING,
     },
     isProfileCompleted: {
       type: Boolean,
-      default: false
+      default: false,
     },
     refreshToken: {
       type: String,

@@ -11,7 +11,7 @@ export interface IUser extends Document {
     phoneNumber: string;
     role: ROLE;
     storeName?: string;
-    isStoreVerified?: boolean;
+    storeStatus?: string;
     isGoogleUser: boolean;
     isEmailVerified: boolean;
     isProfileCompleted: boolean;

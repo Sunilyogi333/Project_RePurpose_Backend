@@ -15,23 +15,23 @@ const iocUserController = container.resolve(UserController);
 // Get current user details
 router.get(
   '/me',
-  authentication([ROLE.MEMBER, ROLE.SELLER, ROLE.ADMIN]),
+  authentication([ROLE.MEMBER, ROLE.SELLER, ROLE.ADMIN, ROLE.STORE]),
   catchAsync(iocUserController.getCurrentUser.bind(iocUserController))
 );
 
 // Update profile picture
 router.patch(
   '/profile-picture',
-  authentication([ROLE.MEMBER, ROLE.SELLER]),
+  authentication([ROLE.MEMBER, ROLE.SELLER, ROLE.STORE]),
   upload.single('profilePicture'), // Middleware for handling single file upload
-  RequestValidator.validate(UpdateProfilePictureDTO),
+  // RequestValidator.validate(UpdateProfilePictureDTO),
   catchAsync(iocUserController.editProfilePicture.bind(iocUserController))
 );
 
 // Edit account details
 router.patch(
   '/edit',
-  authentication([ROLE.MEMBER, ROLE.SELLER]),
+  authentication([ROLE.MEMBER, ROLE.SELLER, ROLE.STORE]),
   RequestValidator.validate(EditUserDTO),
   catchAsync(iocUserController.editAccountDetails.bind(iocUserController))
 );

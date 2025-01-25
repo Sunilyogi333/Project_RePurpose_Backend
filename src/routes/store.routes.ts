@@ -7,36 +7,59 @@ import authentication from '../middlewares/authentication.middleware'; // Auth m
 import HttpException from '../utils/HttpException'; // Custom HTTP exception handler
 import { catchAsync } from '../utils/catchAsync'; // Utility to handle async errors
 import { container } from 'tsyringe';
+import upload from '../middlewares/multer.middleware';
 
 const router = Router();
 const iocStoreController = container.resolve(StoreController);
 
 // Create a new store (Only authenticated users can create a store)
 router.post(
-  '/create',
+  '/KYC',
   authentication([ROLE.STORE]),
-  RequestValidator.validate(CreateStoreDTO),
-  catchAsync(iocStoreController.createStore.bind(iocStoreController))
+  upload.fields([
+    { name: 'passportPhoto', maxCount: 1 },
+    { name: 'businessRegCertificate', maxCount: 1 },
+    { name: 'storeFrontImage', maxCount: 1 },
+  ]),
+  catchAsync(iocStoreController.createStoreKYC.bind(iocStoreController))
 );
 
 // Get all stores (Public)
 router.get(
   '/',
+  authentication([ROLE.STORE, ROLE.ADMIN]),
   catchAsync(iocStoreController.getStores.bind(iocStoreController))
 );
+
+router.get(
+  '/pending',
+  authentication([ROLE.STORE, ROLE.ADMIN]),
+  catchAsync(iocStoreController.getPendingStores.bind(iocStoreController))
+);
+
+router.get(
+  '/my-kyc',
+  authentication([ROLE.STORE]),
+  catchAsync(iocStoreController.getMyStoreKYC.bind(iocStoreController))
+)
 
 // Get a specific store by ID (Public)
 router.get(
   '/:storeId',
+  authentication([ROLE.STORE, ROLE.ADMIN]),
   catchAsync(iocStoreController.getStore.bind(iocStoreController))
 );
 
 // Update a store (Only the store owner or admin can update)
 router.patch(
   '/:storeId',
-  authentication([ROLE.STORE, ROLE.ADMIN]),
-  RequestValidator.validate(UpdateStoreDTO),
-  catchAsync(iocStoreController.updateStore.bind(iocStoreController))
+  authentication([ROLE.STORE]),
+  upload.fields([
+    { name: 'passportPhoto', maxCount: 1 },
+    { name: 'businessRegCertificate', maxCount: 1 },
+    { name: 'storeFrontImage', maxCount: 1 },
+  ]),
+  catchAsync(iocStoreController.updateStoreKYC.bind(iocStoreController))
 );
 
 // Approve a store (Admin only)
@@ -52,6 +75,12 @@ router.delete(
   authentication([ROLE.ADMIN]),
   catchAsync(iocStoreController.rejectStore.bind(iocStoreController))
 );
+
+router.patch(
+  '/:storeId/pending',
+  authentication([ROLE.ADMIN]),
+  catchAsync(iocStoreController.requestModificationStore.bind(iocStoreController))
+)
 
 // Handle undefined routes
 router.all('/*', (req, res) => {

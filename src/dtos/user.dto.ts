@@ -89,7 +89,8 @@ export class CompleteProfileDTO {
 }
 
 export class UpdateProfilePictureDTO {
-  @IsString()
-  @IsNotEmpty({ message: 'Profile picture path is required' })
-  profilePicture!: string;
+  // @IsOptional
+  // @IsString()
+  // @IsNotEmpty({ message: 'Profile picture path is required' })
+  profilePicture?: string;
 }

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sellers = exports.stores = exports.io = void 0;
+exports.sellers = exports.stores = exports.users = exports.io = void 0;
 const express_1 = __importDefault(require("express"));
 require("reflect-metadata");
 const mongoose_connection_1 = __importDefault(require("./db/mongoose.connection"));
@@ -27,7 +27,7 @@ exports.io = new socket_io_1.Server(server, {
         origin: '*',
     },
 });
-let users = {};
+exports.users = {};
 exports.stores = {};
 exports.sellers = {};
 function bootStrap() {
@@ -38,37 +38,18 @@ function bootStrap() {
             exports.io.on('connection', (socket) => {
                 console.log('A user connected:', socket.id);
                 socket.on('register', (userId, role) => {
-                    users[userId] = socket.id;
+                    exports.users[userId] = socket.id;
                     if (role === 'store') {
-                        if (!exports.stores[role]) {
+                        if (!exports.stores[role])
                             exports.stores[role] = [];
-                        }
                         exports.stores[role].push(socket.id);
                         console.log(`Store ${userId} registered with socket ID ${socket.id}`);
                     }
                     if (role === 'seller') {
-                        if (!exports.sellers[role]) {
+                        if (!exports.sellers[role])
                             exports.sellers[role] = [];
-                        }
                         exports.sellers[role].push(socket.id);
                         console.log(`Seller ${userId} registered with socket ID ${socket.id}`);
-                    }
-                });
-                socket.on('sendMessage', (data) => {
-                    console.log('Sending private message:', data);
-                    const receiverSocketId = users[data.receiverId];
-                    if (receiverSocketId) {
-                        exports.io.to(receiverSocketId).emit('receiveMessage', {
-                            productId: data.productId,
-                            senderId: data.senderId,
-                            receiverId: data.receiverId,
-                            message: data.message,
-                            createdAt: new Date(),
-                        });
-                        console.log('Private message sent to:', data.receiverId);
-                    }
-                    else {
-                        console.log('Receiver not connected:', data.receiverId);
                     }
                 });
                 socket.on('productAdded', (productData) => {
@@ -82,29 +63,31 @@ function bootStrap() {
                         });
                     }
                 });
+                socket.on('sendMessage', (data) => {
+                    const receiverSocketId = exports.users[data.receiverId];
+                    if (receiverSocketId) {
+                        exports.io.to(receiverSocketId).emit('receiveMessage', data);
+                    }
+                });
                 socket.on('disconnect', () => {
-                    for (let userId in users) {
-                        if (users[userId] === socket.id) {
-                            delete users[userId];
+                    let disconnectedUser = null;
+                    for (const userId in exports.users) {
+                        if (exports.users[userId] === socket.id) {
+                            disconnectedUser = userId;
+                            delete exports.users[userId];
                             console.log(`User ${userId} disconnected`);
                             break;
                         }
                     }
-                    for (let role in exports.stores) {
-                        const index = exports.stores[role].indexOf(socket.id);
-                        if (index > -1) {
-                            exports.stores[role].splice(index, 1);
-                            console.log(`Store disconnected, removed socket ID: ${socket.id}`);
-                            break;
-                        }
-                    }
-                    for (let role in exports.sellers) {
-                        const index = exports.sellers[role].indexOf(socket.id);
-                        if (index > -1) {
-                            exports.sellers[role].splice(index, 1);
-                            console.log(`Seller disconnected, removed socket ID: ${socket.id}`);
-                            break;
-                        }
+                    const removeFromRole = (roleMap, roleName) => {
+                        var _a;
+                        const index = (_a = roleMap[roleName]) === null || _a === void 0 ? void 0 : _a.indexOf(socket.id);
+                        if (index > -1)
+                            roleMap[roleName].splice(index, 1);
+                    };
+                    if (disconnectedUser) {
+                        removeFromRole(exports.stores, 'store');
+                        removeFromRole(exports.sellers, 'seller');
                     }
                 });
             });

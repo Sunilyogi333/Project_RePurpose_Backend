@@ -5,75 +5,51 @@ import { EnvironmentConfiguration } from './config/env.config';
 import middleware from './middlewares';
 import http from 'http';
 import { Server as SocketServer } from 'socket.io';
+import Chat from './models/chat.model'; // Import Chat model
 
 const app = express();
 const server = http.createServer(app);
 export const io = new SocketServer(server, {
   cors: {
-    origin: '*', // Allow all origins for simplicity. You can restrict this based on your needs.
+    origin: '*', // Allow all origins for simplicity.
   },
 });
 
-let users: { [key: string]: string } = {}; // Mapping of userId to socketId
-export let stores: { [key: string]: string[] } = {}; // Mapping of store role to socketIds
-export let sellers: { [key: string]: string[] } = {}; // Mapping of seller role to socketIds
+export let users: { [key: string]: string } = {}; // UserId to socketId mapping
+export let stores: { [key: string]: string[] } = {}; // Store role to socketIds
+export let sellers: { [key: string]: string[] } = {}; // Seller role to socketIds
 
 async function bootStrap() {
   try {
     await connectDb();
     await middleware(app);
 
-    // Set up Socket.IO connection
+    // Socket.IO connection logic
     io.on('connection', (socket) => {
       console.log('A user connected:', socket.id);
 
-      // Register the user with their userId and role
+      // Register user
       socket.on('register', (userId: string, role: string) => {
-        users[userId] = socket.id; // Store userId and socketId mapping
+        users[userId] = socket.id;
 
-        // Handle store role
         if (role === 'store') {
-          if (!stores[role]) {
-            stores[role] = [];
-          }
-          stores[role].push(socket.id); // Store the socketId for the store
+          if (!stores[role]) stores[role] = [];
+          stores[role].push(socket.id);
           console.log(`Store ${userId} registered with socket ID ${socket.id}`);
         }
 
-        // Handle seller role
         if (role === 'seller') {
-          if (!sellers[role]) {
-            sellers[role] = [];
-          }
-          sellers[role].push(socket.id); // Store the socketId for the seller
+          if (!sellers[role]) sellers[role] = [];
+          sellers[role].push(socket.id);
           console.log(`Seller ${userId} registered with socket ID ${socket.id}`);
         }
       });
 
-      // Handle sending a private message
-      socket.on('sendMessage', (data: { productId: string, senderId: string, receiverId: string, message: string }) => {
-        console.log('Sending private message:', data);
-
-        const receiverSocketId = users[data.receiverId];
-        if (receiverSocketId) {
-          io.to(receiverSocketId).emit('receiveMessage', {
-            productId: data.productId,
-            senderId: data.senderId,
-            receiverId: data.receiverId,
-            message: data.message,
-            createdAt: new Date(),
-          });
-          console.log('Private message sent to:', data.receiverId);
-        } else {
-          console.log('Receiver not connected:', data.receiverId);
-        }
-      });
-
-      // Handle broadcasting notification to all stores when a seller adds a new product
-      socket.on('productAdded', (productData: { sellerId: string, productId: string, productName: string }) => {
+      // Handle product notification
+      socket.on('productAdded', (productData: { sellerId: string; productId: string; productName: string }) => {
         console.log('New product added:', productData);
 
-        // Emit to all store sockets
+        // Notify all stores
         if (stores['store']) {
           stores['store'].forEach((storeSocketId) => {
             io.to(storeSocketId).emit('receiveNotification', {
@@ -84,35 +60,38 @@ async function bootStrap() {
         }
       });
 
-      // Handle disconnect event
+      // Send and save chat messages
+      socket.on('sendMessage', (data: { senderId: string; receiverId: string; message: string }) => {
+        const receiverSocketId = users[data.receiverId];
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit('receiveMessage', data);
+        }
+    });
+    
+
+      // Handle user disconnection
       socket.on('disconnect', () => {
-        // Remove user from the mapping on disconnect
-        for (let userId in users) {
+        let disconnectedUser: string | null = null;
+
+        // Remove from user mapping
+        for (const userId in users) {
           if (users[userId] === socket.id) {
+            disconnectedUser = userId;
             delete users[userId];
             console.log(`User ${userId} disconnected`);
             break;
           }
         }
 
-        // Remove store from the stores list on disconnect
-        for (let role in stores) {
-          const index = stores[role].indexOf(socket.id);
-          if (index > -1) {
-            stores[role].splice(index, 1);
-            console.log(`Store disconnected, removed socket ID: ${socket.id}`);
-            break;
-          }
-        }
+        // Remove from stores or sellers
+        const removeFromRole = (roleMap: { [key: string]: string[] }, roleName: string) => {
+          const index = roleMap[roleName]?.indexOf(socket.id);
+          if (index > -1) roleMap[roleName].splice(index, 1);
+        };
 
-        // Remove seller from the sellers list on disconnect
-        for (let role in sellers) {
-          const index = sellers[role].indexOf(socket.id);
-          if (index > -1) {
-            sellers[role].splice(index, 1);
-            console.log(`Seller disconnected, removed socket ID: ${socket.id}`);
-            break;
-          }
+        if (disconnectedUser) {
+          removeFromRole(stores, 'store');
+          removeFromRole(sellers, 'seller');
         }
       });
     });

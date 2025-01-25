@@ -120,6 +120,8 @@ export class AuthController {
           email: updatedUser.email,
           role: updatedUser.role,
           isEmailVerified: updatedUser.isEmailVerified,
+          storeName: updatedUser?.storeName || '',
+          storeStatus: updatedUser?.storeStatus || ''
         })
       )
     } catch (error) {
@@ -244,6 +246,9 @@ export class AuthController {
         lastName: user.lastName,
         email: user.email,
         role: user.role,
+        storeName: user?.storeName || '',
+        profilePicture: user?.profilePicture || '',
+        storeStatus: user?.storeStatus
       })
     )
   }

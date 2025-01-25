@@ -13,6 +13,7 @@ const mongoose_1 = require("mongoose");
 const enum_1 = require("../constants/enum");
 const bcrypt_utils_1 = require("../utils/bcrypt.utils");
 const token_service_1 = require("../services/token.service");
+const enum_2 = require("../constants/enum");
 const userSchema = new mongoose_1.Schema({
     firstName: {
         type: String,
@@ -64,12 +65,14 @@ const userSchema = new mongoose_1.Schema({
         type: Boolean,
         default: false,
     },
-    isStoreVerified: {
-        type: Boolean, default: false
+    storeStatus: {
+        type: String,
+        enum: [enum_2.SELLER_KYC_STATUS.APPROVED, enum_2.SELLER_KYC_STATUS.REJECTED, enum_2.SELLER_KYC_STATUS.PENDING],
+        default: enum_2.SELLER_KYC_STATUS.PENDING,
     },
     isProfileCompleted: {
         type: Boolean,
-        default: false
+        default: false,
     },
     refreshToken: {
         type: String,

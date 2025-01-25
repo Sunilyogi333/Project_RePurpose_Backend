@@ -104,9 +104,4 @@ __decorate([
 class UpdateProfilePictureDTO {
 }
 exports.UpdateProfilePictureDTO = UpdateProfilePictureDTO;
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)({ message: 'Profile picture path is required' }),
-    __metadata("design:type", String)
-], UpdateProfilePictureDTO.prototype, "profilePicture", void 0);
 //# sourceMappingURL=user.dto.js.map

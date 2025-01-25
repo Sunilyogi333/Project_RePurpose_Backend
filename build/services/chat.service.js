@@ -14,10 +14,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const chat_model_1 = __importDefault(require("../models/chat.model"));
 class ChatService {
-    sendMessage(productId, senderId, receiverId, message) {
+    sendMessage(senderId, receiverId, message) {
         return __awaiter(this, void 0, void 0, function* () {
             const chatMessage = new chat_model_1.default({
-                productId,
                 sender: senderId,
                 receiver: receiverId,
                 message,
@@ -27,9 +26,54 @@ class ChatService {
             return chatMessage;
         });
     }
-    getMessagesForProduct(productId) {
+    getMessages(senderId, receiverId) {
         return __awaiter(this, void 0, void 0, function* () {
-            return chat_model_1.default.find({ productId }).sort({ createdAt: 1 });
+            return yield chat_model_1.default.find({ sender: senderId, receiver: receiverId });
+        });
+    }
+    getAllChats(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const chats = yield chat_model_1.default.aggregate([
+                    {
+                        $match: {
+                            $or: [{ sender: userId }, { receiver: userId }],
+                        },
+                    },
+                    {
+                        $group: {
+                            _id: {
+                                $cond: [{ $eq: ['$sender', userId] }, '$receiver', '$sender'],
+                            },
+                            latestMessage: { $last: '$message' },
+                            createdAt: { $last: '$createdAt' },
+                        },
+                    },
+                    {
+                        $lookup: {
+                            from: 'users',
+                            localField: '_id',
+                            foreignField: '_id',
+                            as: 'participant',
+                        },
+                    },
+                    {
+                        $unwind: '$participant',
+                    },
+                    {
+                        $project: {
+                            participantName: '$participant.name',
+                            participantId: '$participant._id',
+                            latestMessage: 1,
+                            createdAt: 1,
+                        },
+                    },
+                ]);
+                return chats;
+            }
+            catch (error) {
+                throw new Error('Error fetching chats');
+            }
         });
     }
 }

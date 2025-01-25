@@ -74,7 +74,7 @@ __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], CreateStoreDTO.prototype, "businessRegistrationNumber", void 0);
+], CreateStoreDTO.prototype, "businessRegNumber", void 0);
 __decorate([
     (0, class_validator_1.ValidateNested)(),
     (0, class_transformer_1.Type)(() => AddressDTO),
@@ -89,7 +89,7 @@ __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], CreateStoreDTO.prototype, "businessRegistrationCertificate", void 0);
+], CreateStoreDTO.prototype, "businessRegCertificate", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsOptional)(),

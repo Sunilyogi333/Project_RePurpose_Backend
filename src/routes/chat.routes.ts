@@ -19,6 +19,19 @@ router.post(
   catchAsync(iocChatController.sendMessage.bind(iocChatController))
 );
 
+// Get messages
+router.get(
+  '/messages',
+  authentication([ROLE.ADMIN, ROLE.MEMBER, ROLE.SELLER]),
+  catchAsync(iocChatController.getMessages.bind(iocChatController))
+);
+
+router.get(
+  '/', 
+  authentication([ROLE.ADMIN, ROLE.MEMBER, ROLE.SELLER, ROLE.STORE]),
+  catchAsync(iocChatController.getAllChats.bind(iocChatController))  
+);
+
 // Handle undefined routes
 router.all('/*', (req, res) => {
   throw HttpException.MethodNotAllowed('Route not allowed');

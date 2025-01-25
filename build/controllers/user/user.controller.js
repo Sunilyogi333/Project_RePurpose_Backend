@@ -63,6 +63,7 @@ let UserController = class UserController {
                 const updatedUser = yield this.userService.updateUser(req.user._id, {
                     profilePicture: imageResult.secure_url,
                 });
+                console.log("updated user", updatedUser);
                 res
                     .status(statusCodes_1.StatusCodes.SUCCESS)
                     .json((0, response_1.createResponse)(true, statusCodes_1.StatusCodes.SUCCESS, 'Profile picture updated successfully', updatedUser));

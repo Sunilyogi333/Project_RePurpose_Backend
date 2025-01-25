@@ -24,5 +24,5 @@ export declare class CompleteProfileDTO {
     storeName?: string;
 }
 export declare class UpdateProfilePictureDTO {
-    profilePicture: string;
+    profilePicture?: string;
 }

@@ -16,10 +16,10 @@ export enum Gender {
   OTHERS = 'OTHERS',
 }
 
-export enum SELLER_STATUS {
-  WAITING_APPROVAL = 'WAITING_APPROVAL',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
+export enum SELLER_KYC_STATUS {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
 }
 
 export enum PACKAGE_STATUS {

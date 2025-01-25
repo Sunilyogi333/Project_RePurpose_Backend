@@ -15,9 +15,9 @@ const productController = tsyringe_1.container.resolve(product_controller_1.Prod
 router.post('/', (0, authentication_middleware_1.default)([enum_1.ROLE.ADMIN, enum_1.ROLE.SELLER]), multer_middleware_1.default.array('images', 5), (0, catchAsync_1.catchAsync)(productController.createProduct.bind(productController)));
 router.get('/:id', (0, authentication_middleware_1.default)([enum_1.ROLE.ADMIN, enum_1.ROLE.SELLER, enum_1.ROLE.MEMBER, enum_1.ROLE.STORE]), (0, catchAsync_1.catchAsync)(productController.getProduct.bind(productController)));
 router.put('/:id', (0, authentication_middleware_1.default)([enum_1.ROLE.ADMIN, enum_1.ROLE.SELLER]), multer_middleware_1.default.array('images', 3), (0, catchAsync_1.catchAsync)(productController.updateProduct.bind(productController)));
-router.delete('/:id', (0, authentication_middleware_1.default)([enum_1.ROLE.ADMIN, enum_1.ROLE.SELLER]), (0, catchAsync_1.catchAsync)(productController.deleteProduct.bind(productController)));
+router.delete('/:id', (0, authentication_middleware_1.default)([enum_1.ROLE.ADMIN, enum_1.ROLE.SELLER, enum_1.ROLE.STORE]), (0, catchAsync_1.catchAsync)(productController.deleteProduct.bind(productController)));
 router.get('/', (0, authentication_middleware_1.default)([enum_1.ROLE.ADMIN, enum_1.ROLE.MEMBER, enum_1.ROLE.SELLER, enum_1.ROLE.STORE]), (0, catchAsync_1.catchAsync)(productController.getProducts.bind(productController)));
-router.get('/seller/:sellerId', (0, authentication_middleware_1.default)([enum_1.ROLE.ADMIN, enum_1.ROLE.SELLER]), (0, catchAsync_1.catchAsync)(productController.getProductsBySellerId.bind(productController)));
+router.get('/seller/:sellerId', (0, authentication_middleware_1.default)([enum_1.ROLE.ADMIN, enum_1.ROLE.SELLER, enum_1.ROLE.STORE]), (0, catchAsync_1.catchAsync)(productController.getProductsBySellerId.bind(productController)));
 router.post('/reward-points', (0, catchAsync_1.catchAsync)(productController.getRewardPoints.bind(productController)));
 router.all('/*', (req, res) => {
     res.status(405).json({ message: 'Method not allowed' });

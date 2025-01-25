@@ -20,12 +20,11 @@ const HttpException_1 = __importDefault(require("../../utils/HttpException"));
 class ChatController {
     sendMessage(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { productId, receiverId, message } = req.body;
+            const { receiverId, message } = req.body;
             const senderId = req.user._id;
             try {
-                const chatMessage = yield chat_service_1.default.sendMessage(productId, senderId, receiverId, message);
+                const chatMessage = yield chat_service_1.default.sendMessage(senderId, receiverId, message);
                 server_1.io.emit('receiveMessage', {
-                    productId,
                     senderId,
                     receiverId,
                     message,
@@ -39,6 +38,37 @@ class ChatController {
             }
             catch (error) {
                 throw HttpException_1.default.InternalServer('Failed to send message');
+            }
+        });
+    }
+    getMessages(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { receiverId } = req.query;
+            const senderId = req.user._id;
+            try {
+                const messages = yield chat_service_1.default.getMessages(senderId, receiverId);
+                res.status(statusCodes_1.StatusCodes.SUCCESS).json({
+                    success: true,
+                    data: messages,
+                });
+            }
+            catch (error) {
+                throw HttpException_1.default.InternalServer('Failed to fetch messages');
+            }
+        });
+    }
+    getAllChats(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const userId = req.user._id;
+            try {
+                const chats = yield chat_service_1.default.getAllChats(userId);
+                res.status(statusCodes_1.StatusCodes.SUCCESS).json({
+                    success: true,
+                    data: chats,
+                });
+            }
+            catch (error) {
+                throw HttpException_1.default.InternalServer('Failed to fetch chats');
             }
         });
     }

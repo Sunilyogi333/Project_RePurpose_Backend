@@ -11,10 +11,10 @@ export declare class CreateStoreDTO {
     email: string;
     phoneNumber: string;
     passportPhoto: string;
-    businessRegistrationNumber: string;
+    businessRegNumber: string;
     storeAddress: AddressDTO;
     ownerGovernmentID: string;
-    businessRegistrationCertificate: string;
+    businessRegCertificate: string;
     storefrontImage?: string;
 }
 export declare class UpdateStoreDTO extends CreateStoreDTO {

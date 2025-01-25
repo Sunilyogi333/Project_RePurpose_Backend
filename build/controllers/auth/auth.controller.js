@@ -133,6 +133,8 @@ let AuthController = class AuthController {
                     email: updatedUser.email,
                     role: updatedUser.role,
                     isEmailVerified: updatedUser.isEmailVerified,
+                    storeName: (updatedUser === null || updatedUser === void 0 ? void 0 : updatedUser.storeName) || '',
+                    storeStatus: (updatedUser === null || updatedUser === void 0 ? void 0 : updatedUser.storeStatus) || ''
                 }));
             }
             catch (error) {
@@ -218,6 +220,9 @@ let AuthController = class AuthController {
                 lastName: user.lastName,
                 email: user.email,
                 role: user.role,
+                storeName: (user === null || user === void 0 ? void 0 : user.storeName) || '',
+                profilePicture: (user === null || user === void 0 ? void 0 : user.profilePicture) || '',
+                storeStatus: user === null || user === void 0 ? void 0 : user.storeStatus
             }));
         });
     }

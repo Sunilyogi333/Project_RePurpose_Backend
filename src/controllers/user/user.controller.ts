@@ -49,6 +49,8 @@ export class UserController {
         profilePicture: imageResult.secure_url,
       });
 
+      console.log("updated user", updatedUser)
+
       res
         .status(StatusCodes.SUCCESS)
         .json(createResponse(true, StatusCodes.SUCCESS, 'Profile picture updated successfully', updatedUser));

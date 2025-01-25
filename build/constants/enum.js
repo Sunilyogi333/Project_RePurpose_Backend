@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NOTIFICATION_TYPE = exports.PRODUCT_STATUS = exports.PACKAGE_STATUS = exports.SELLER_STATUS = exports.Gender = exports.ROLE = exports.Environment = void 0;
+exports.NOTIFICATION_TYPE = exports.PRODUCT_STATUS = exports.PACKAGE_STATUS = exports.SELLER_KYC_STATUS = exports.Gender = exports.ROLE = exports.Environment = void 0;
 var Environment;
 (function (Environment) {
     Environment["DEVELOPMENT"] = "DEVELOPMENT";
@@ -19,12 +19,12 @@ var Gender;
     Gender["FEMALE"] = "FEMALE";
     Gender["OTHERS"] = "OTHERS";
 })(Gender || (exports.Gender = Gender = {}));
-var SELLER_STATUS;
-(function (SELLER_STATUS) {
-    SELLER_STATUS["WAITING_APPROVAL"] = "WAITING_APPROVAL";
-    SELLER_STATUS["APPROVED"] = "APPROVED";
-    SELLER_STATUS["REJECTED"] = "REJECTED";
-})(SELLER_STATUS || (exports.SELLER_STATUS = SELLER_STATUS = {}));
+var SELLER_KYC_STATUS;
+(function (SELLER_KYC_STATUS) {
+    SELLER_KYC_STATUS["PENDING"] = "pending";
+    SELLER_KYC_STATUS["APPROVED"] = "approved";
+    SELLER_KYC_STATUS["REJECTED"] = "rejected";
+})(SELLER_KYC_STATUS || (exports.SELLER_KYC_STATUS = SELLER_KYC_STATUS = {}));
 var PACKAGE_STATUS;
 (function (PACKAGE_STATUS) {
     PACKAGE_STATUS["WAITING_APPROVAL"] = "WAITING_APPROVAL";

@@ -13,10 +13,10 @@ export declare enum Gender {
     FEMALE = "FEMALE",
     OTHERS = "OTHERS"
 }
-export declare enum SELLER_STATUS {
-    WAITING_APPROVAL = "WAITING_APPROVAL",
-    APPROVED = "APPROVED",
-    REJECTED = "REJECTED"
+export declare enum SELLER_KYC_STATUS {
+    PENDING = "pending",
+    APPROVED = "approved",
+    REJECTED = "rejected"
 }
 export declare enum PACKAGE_STATUS {
     WAITING_APPROVAL = "WAITING_APPROVAL",

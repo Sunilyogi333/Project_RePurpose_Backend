@@ -59,7 +59,7 @@ export class CreateStoreDTO {
 
   @IsString()
   @IsNotEmpty()
-  businessRegistrationNumber: string;
+  businessRegNumber: string;
 
   @ValidateNested()
   @Type(() => AddressDTO)
@@ -71,7 +71,7 @@ export class CreateStoreDTO {
 
   @IsString()
   @IsNotEmpty()
-  businessRegistrationCertificate: string;
+  businessRegCertificate: string;
 
   @IsString()
   @IsOptional()

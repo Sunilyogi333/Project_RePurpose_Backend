@@ -39,7 +39,7 @@ router.put(
 // Delete product
 router.delete(
   '/:id',
-  authentication([ROLE.ADMIN, ROLE.SELLER]), // Only admin and sellers can delete
+  authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.STORE]), // Only admin and sellers can delete
   catchAsync(productController.deleteProduct.bind(productController))
 );
 
@@ -53,7 +53,7 @@ router.get(
 // Get products by seller ID
 router.get(
   '/seller/:sellerId',
-  authentication([ROLE.ADMIN, ROLE.SELLER]), // Only admin and sellers can view products of a specific seller
+  authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.STORE]), // Only admin and sellers can view products of a specific seller
   catchAsync(productController.getProductsBySellerId.bind(productController))
 );
 
