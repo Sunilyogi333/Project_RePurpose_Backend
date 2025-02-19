@@ -1,6 +1,7 @@
 import { Document, Types } from 'mongoose'
 
 export interface IStore extends Document {
+  _id: Types.ObjectId
   userID: Types.ObjectId // Reference to the User model
   storeName: string
   ownerName: string

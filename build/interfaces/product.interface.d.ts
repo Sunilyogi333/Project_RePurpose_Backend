@@ -16,7 +16,8 @@ export interface IProduct extends Document {
     condition: number;
     code: string;
     seller: Types.ObjectId;
-    postedBy: Types.ObjectId;
+    soldTo: Types.ObjectId;
+    soldPrice: number;
     status: string;
     createdAt: Date;
     updatedAt: Date;

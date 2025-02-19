@@ -6,6 +6,7 @@ import storeRoutes from './store.routes'
 import productRoutes from './product.routes'
 import categoryRoutes from './category.routes'
 import chatRoutes from './chat.routes'
+import messageRoutes from './message.routes'
 import notificationRoutes from './notification.routes'
 
 export type Route = {
@@ -38,6 +39,10 @@ const routes: Route[] = [
   {
     path: '/chat',
     route: chatRoutes
+  },
+  {
+    path: '/message',
+    route: messageRoutes
   },
   {
     path: '/notifications',

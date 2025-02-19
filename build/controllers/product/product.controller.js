@@ -32,6 +32,8 @@ const cloudinary_service_1 = __importDefault(require("../../services/cloudinary.
 const python_shell_1 = require("python-shell");
 const server_1 = require("../../server");
 const server_2 = require("../../server");
+const purchaseRequest_model_1 = __importDefault(require("../../models/purchaseRequest.model"));
+const store_model_1 = __importDefault(require("../../models/store.model"));
 let ProductController = class ProductController {
     constructor(productService) {
         this.getRewardPoint = (inputData) => __awaiter(this, void 0, void 0, function* () {
@@ -208,6 +210,84 @@ let ProductController = class ProductController {
                 console.error(error);
                 throw HttpException_1.default.InternalServer('Failed to fetch products for the user');
             }
+        });
+    }
+    requestForBuy(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { productId } = req.params;
+            const { proposedPrice } = req.body;
+            const storeUserId = req.user._id;
+            const product = yield this.productService.getProductById(productId);
+            if (!product) {
+                throw HttpException_1.default.NotFound('Product not found');
+            }
+            const store = yield store_model_1.default.findOne({ userID: storeUserId });
+            if (!store) {
+                throw HttpException_1.default.NotFound('Store not found');
+            }
+            const storeId = store._id;
+            if (proposedPrice < 0) {
+                throw HttpException_1.default.BadRequest('Invalid price');
+            }
+            const existingRequest = yield purchaseRequest_model_1.default.findOne({ product: productId, store: storeId });
+            if (existingRequest) {
+                throw HttpException_1.default.BadRequest('You have already requested this product');
+            }
+            const request = new purchaseRequest_model_1.default({
+                product: productId,
+                store: storeId,
+                proposedPrice,
+            });
+            yield request.save();
+            res
+                .status(statusCodes_1.StatusCodes.CREATED)
+                .json((0, response_1.createResponse)(true, statusCodes_1.StatusCodes.CREATED, 'Purchase request submitted successfully', request));
+        });
+    }
+    getRequestsOnProduct(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { productId } = req.params;
+            const requests = yield purchaseRequest_model_1.default.find({ product: productId, status: 'PENDING' }).populate('store', 'storeName ownerName storeFrontImage email phoneNumber storeNumber storeAddress');
+            res
+                .status(statusCodes_1.StatusCodes.SUCCESS)
+                .json((0, response_1.createResponse)(true, statusCodes_1.StatusCodes.SUCCESS, 'Requests fetched successfully', requests));
+        });
+    }
+    acceptRequestOnProduct(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { productId, requestId } = req.params;
+            const request = yield purchaseRequest_model_1.default.findById(requestId);
+            if (!request || request.status !== 'PENDING') {
+                throw HttpException_1.default.NotFound('Request not found or already processed');
+            }
+            request.status = 'APPROVED';
+            yield request.save();
+            yield purchaseRequest_model_1.default.updateMany({ product: productId, _id: { $ne: requestId } }, { status: 'REJECTED' });
+            const product = yield this.productService.getProductById(productId);
+            if (!product) {
+                throw HttpException_1.default.NotFound('Product not found');
+            }
+            product.status = 'SOLD';
+            product.soldTo = request.store;
+            yield product.save();
+            res
+                .status(statusCodes_1.StatusCodes.SUCCESS)
+                .json((0, response_1.createResponse)(true, statusCodes_1.StatusCodes.SUCCESS, 'Request approved successfully', request));
+        });
+    }
+    getPurchaseRequests(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log("ya aaye");
+            const { productId, storeOwnerId } = req.params;
+            const store = yield store_model_1.default.find({ userID: storeOwnerId });
+            if (!store) {
+                throw HttpException_1.default.NotFound('Store not found');
+            }
+            const storeId = store[0]._id;
+            const existingRequest = yield purchaseRequest_model_1.default.find({ product: productId, store: storeId });
+            res
+                .status(statusCodes_1.StatusCodes.SUCCESS)
+                .json((0, response_1.createResponse)(true, statusCodes_1.StatusCodes.SUCCESS, 'Requests fetched successfully', existingRequest));
         });
     }
     getRewardPoints(req, res) {

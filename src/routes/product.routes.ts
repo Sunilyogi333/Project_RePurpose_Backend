@@ -57,6 +57,30 @@ router.get(
   catchAsync(productController.getProductsBySellerId.bind(productController))
 );
 
+router.post(
+  '/:productId/request',
+  authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.STORE]), // Only admin and sellers can view products of a specific seller
+  catchAsync(productController.requestForBuy.bind(productController))
+);
+
+router.get(
+  '/:productId/requests',
+  authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.STORE]), // Only admin and sellers can view products of a specific seller
+  catchAsync(productController.getRequestsOnProduct.bind(productController))
+)
+
+router.post(
+  '/:productId/accept/:requestId',
+  authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.STORE]), // Only admin and sellers can view products of a specific seller
+  catchAsync(productController.acceptRequestOnProduct.bind(productController))
+)
+
+router.get(
+  '/purchase-requests/:productId/:storeOwnerId',
+  authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.STORE]), 
+  catchAsync(productController.getPurchaseRequests.bind(productController))
+)
+
 // Get reward points
 router.post(
   '/reward-points',

@@ -9,6 +9,10 @@ export declare class ProductController {
     deleteProduct(req: Request, res: Response): Promise<void>;
     getProducts(req: Request, res: Response): Promise<void>;
     getProductsBySellerId(req: Request, res: Response): Promise<void>;
+    requestForBuy(req: Request, res: Response): Promise<void>;
+    getRequestsOnProduct(req: Request, res: Response): Promise<void>;
+    acceptRequestOnProduct(req: Request, res: Response): Promise<void>;
+    getPurchaseRequests(req: Request, res: Response): Promise<void>;
     getRewardPoints(req: Request, res: Response): Promise<Response>;
     getRewardPoint: (inputData: Object) => Promise<unknown>;
 }

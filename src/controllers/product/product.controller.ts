@@ -10,6 +10,8 @@ import cloudinaryService from '../../services/cloudinary.service'
 import { PythonShell } from 'python-shell'
 import { stores } from '../../server'; // Adjust the path based on your project structure
 import { io } from '../../server'
+import PurchaseRequest from '../../models/purchaseRequest.model'
+import Store from '../../models/store.model'
 
 @injectable()
 export class ProductController {
@@ -211,6 +213,99 @@ export class ProductController {
     }
   }
 
+  async requestForBuy(req: Request, res: Response):Promise<void>{
+    const { productId } = req.params;
+    const { proposedPrice } = req.body;
+    const storeUserId = req.user._id;
+
+    const product = await this.productService.getProductById(productId);
+    if (!product) {
+      throw HttpException.NotFound('Product not found');
+    }
+    const store = await Store.findOne({ userID: storeUserId });
+    if (!store) {
+      throw HttpException.NotFound('Store not found');
+    }
+    const storeId = store._id;
+
+    // Ensure the price is valid
+    if (proposedPrice < 0) {
+      throw HttpException.BadRequest('Invalid price');
+    }
+
+    // Check if the store has already requested
+    const existingRequest = await PurchaseRequest.findOne({ product: productId, store: storeId });
+    if (existingRequest) {
+      throw HttpException.BadRequest('You have already requested this product');
+    }
+
+    // Create a new purchase request
+    const request = new PurchaseRequest({
+      product: productId,
+      store: storeId,
+      proposedPrice, 
+    });
+
+    await request.save();
+    res
+      .status(StatusCodes.CREATED)
+      .json(createResponse(true, StatusCodes.CREATED, 'Purchase request submitted successfully', request));
+  }
+
+  async getRequestsOnProduct(req: Request, res: Response): Promise<void> {
+    const { productId } = req.params;
+
+    const requests = await PurchaseRequest.find({ product: productId, status: 'PENDING' }).populate('store', 'storeName ownerName storeFrontImage email phoneNumber storeNumber storeAddress'); 
+
+    res
+      .status(StatusCodes.SUCCESS)
+      .json(createResponse(true, StatusCodes.SUCCESS, 'Requests fetched successfully', requests));
+  }
+
+  async acceptRequestOnProduct(req: Request, res: Response): Promise<void> {
+    const { productId, requestId } = req.params;
+
+    const request = await PurchaseRequest.findById(requestId); 
+    if (!request || request.status !== 'PENDING') {
+      throw HttpException.NotFound('Request not found or already processed');
+    }
+
+    // Update the request status
+    request.status = 'APPROVED';
+    await request.save();
+
+    //and reject all other requests
+    await PurchaseRequest.updateMany({ product: productId, _id: { $ne: requestId } }, { status: 'REJECTED' });
+
+    // Update the product status
+    const product = await this.productService.getProductById(productId);
+    if (!product) {
+      throw HttpException.NotFound('Product not found');
+    }
+    product.status = 'SOLD';
+    product.soldTo = request.store;
+    await product.save();
+
+    res
+      .status(StatusCodes.SUCCESS)
+      .json(createResponse(true, StatusCodes.SUCCESS, 'Request approved successfully', request));
+  }
+
+  async getPurchaseRequests(req: Request, res: Response): Promise<void> {
+    console.log("ya aaye");
+    const { productId, storeOwnerId } = req.params;
+    const store = await Store.find({ userID: storeOwnerId });
+    if (!store) {
+      throw HttpException.NotFound('Store not found');
+    }
+  const storeId = store[0]._id;
+    const existingRequest = await PurchaseRequest.find({ product: productId, store: storeId });
+
+    res
+      .status(StatusCodes.SUCCESS)
+      .json(createResponse(true, StatusCodes.SUCCESS, 'Requests fetched successfully', existingRequest));
+  }
+
   async getRewardPoints(req: Request, res: Response): Promise<Response> {
     const { part_name, material, eco_friendly, item_price } = req.body
 
@@ -252,4 +347,5 @@ export class ProductController {
         })
     })
   }
+  
 }

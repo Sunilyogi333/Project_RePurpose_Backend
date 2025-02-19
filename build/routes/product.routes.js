@@ -18,6 +18,10 @@ router.put('/:id', (0, authentication_middleware_1.default)([enum_1.ROLE.ADMIN, 
 router.delete('/:id', (0, authentication_middleware_1.default)([enum_1.ROLE.ADMIN, enum_1.ROLE.SELLER, enum_1.ROLE.STORE]), (0, catchAsync_1.catchAsync)(productController.deleteProduct.bind(productController)));
 router.get('/', (0, authentication_middleware_1.default)([enum_1.ROLE.ADMIN, enum_1.ROLE.MEMBER, enum_1.ROLE.SELLER, enum_1.ROLE.STORE]), (0, catchAsync_1.catchAsync)(productController.getProducts.bind(productController)));
 router.get('/seller/:sellerId', (0, authentication_middleware_1.default)([enum_1.ROLE.ADMIN, enum_1.ROLE.SELLER, enum_1.ROLE.STORE]), (0, catchAsync_1.catchAsync)(productController.getProductsBySellerId.bind(productController)));
+router.post('/:productId/request', (0, authentication_middleware_1.default)([enum_1.ROLE.ADMIN, enum_1.ROLE.SELLER, enum_1.ROLE.STORE]), (0, catchAsync_1.catchAsync)(productController.requestForBuy.bind(productController)));
+router.get('/:productId/requests', (0, authentication_middleware_1.default)([enum_1.ROLE.ADMIN, enum_1.ROLE.SELLER, enum_1.ROLE.STORE]), (0, catchAsync_1.catchAsync)(productController.getRequestsOnProduct.bind(productController)));
+router.post('/:productId/accept/:requestId', (0, authentication_middleware_1.default)([enum_1.ROLE.ADMIN, enum_1.ROLE.SELLER, enum_1.ROLE.STORE]), (0, catchAsync_1.catchAsync)(productController.acceptRequestOnProduct.bind(productController)));
+router.get('/purchase-requests/:productId/:storeOwnerId', (0, authentication_middleware_1.default)([enum_1.ROLE.ADMIN, enum_1.ROLE.SELLER, enum_1.ROLE.STORE]), (0, catchAsync_1.catchAsync)(productController.getPurchaseRequests.bind(productController)));
 router.post('/reward-points', (0, catchAsync_1.catchAsync)(productController.getRewardPoints.bind(productController)));
 router.all('/*', (req, res) => {
     res.status(405).json({ message: 'Method not allowed' });

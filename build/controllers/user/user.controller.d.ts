@@ -7,4 +7,5 @@ export declare class UserController {
     editProfilePicture(req: Request, res: Response): Promise<void>;
     editAccountDetails(req: Request, res: Response): Promise<void>;
     getAllUsers(req: Request, res: Response): Promise<void>;
+    allUsers(req: Request, res: Response): Promise<void>;
 }

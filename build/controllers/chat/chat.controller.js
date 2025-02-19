@@ -13,62 +13,69 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatController = void 0;
-const server_1 = require("../../server");
-const chat_service_1 = __importDefault(require("../../services/chat.service"));
+const mongoose_1 = __importDefault(require("mongoose"));
+const chat_model_1 = __importDefault(require("../../models/chat.model"));
 const statusCodes_1 = require("../../constants/statusCodes");
-const HttpException_1 = __importDefault(require("../../utils/HttpException"));
+const user_model_1 = __importDefault(require("../../models/user.model"));
 class ChatController {
-    sendMessage(req, res) {
+    accessChat(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { receiverId, message } = req.body;
-            const senderId = req.user._id;
             try {
-                const chatMessage = yield chat_service_1.default.sendMessage(senderId, receiverId, message);
-                server_1.io.emit('receiveMessage', {
-                    senderId,
-                    receiverId,
-                    message,
-                    createdAt: chatMessage.createdAt,
+                console.log("req params", req.params);
+                const { userId } = req.params;
+                console.log("Received userId:", userId);
+                if (!userId || !mongoose_1.default.Types.ObjectId.isValid(userId)) {
+                    return res.status(400).json({ message: "Invalid user ID" });
+                }
+                if (!req.user) {
+                    return res.status(401).json({ message: "Unauthorized" });
+                }
+                let isChat = yield chat_model_1.default.find({
+                    users: { $all: [req.user._id, new mongoose_1.default.Types.ObjectId(userId)] },
+                })
+                    .populate("users", "-password")
+                    .populate("latestMessage");
+                isChat = yield chat_model_1.default.populate(isChat, {
+                    path: "latestMessage.sender",
+                    select: "name email profilePicture",
                 });
-                res.status(statusCodes_1.StatusCodes.CREATED).json({
-                    success: true,
-                    message: 'Message sent successfully',
-                    data: chatMessage,
-                });
+                if (isChat.length > 0) {
+                    return res.status(200).json(isChat[0]);
+                }
+                else {
+                    const chatData = {
+                        chatName: "sender",
+                        users: [req.user._id, new mongoose_1.default.Types.ObjectId(userId)],
+                    };
+                    const createdChat = yield chat_model_1.default.create(chatData);
+                    const fullChat = yield chat_model_1.default.findOne({ _id: createdChat._id }).populate("users", "-password");
+                    return res.status(201).json({ success: true, data: fullChat });
+                }
             }
             catch (error) {
-                throw HttpException_1.default.InternalServer('Failed to send message');
+                console.error("Chat access error:", error);
+                return res.status(500).json({ message: "Internal Server Error" });
             }
         });
     }
-    getMessages(req, res) {
+    fetchChats(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { receiverId } = req.query;
-            const senderId = req.user._id;
             try {
-                const messages = yield chat_service_1.default.getMessages(senderId, receiverId);
+                const results = yield chat_model_1.default.find({ users: { $elemMatch: { $eq: req.user._id } } })
+                    .populate('users', '-password')
+                    .populate('latestMessage')
+                    .sort({ updatedAt: -1 });
+                const populatedResults = yield user_model_1.default.populate(results, {
+                    path: 'latestMessage.sender',
+                    select: 'name email profilePicture',
+                });
                 res.status(statusCodes_1.StatusCodes.SUCCESS).json({
                     success: true,
-                    data: messages,
+                    data: populatedResults,
                 });
             }
             catch (error) {
-                throw HttpException_1.default.InternalServer('Failed to fetch messages');
-            }
-        });
-    }
-    getAllChats(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const userId = req.user._id;
-            try {
-                const chats = yield chat_service_1.default.getAllChats(userId);
-                res.status(statusCodes_1.StatusCodes.SUCCESS).json({
-                    success: true,
-                    data: chats,
-                });
-            }
-            catch (error) {
-                throw HttpException_1.default.InternalServer('Failed to fetch chats');
+                res.status(400).send({ error: error.message });
             }
         });
     }

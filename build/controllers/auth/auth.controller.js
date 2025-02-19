@@ -120,7 +120,7 @@ let AuthController = class AuthController {
                 updatedUser.refreshToken = refreshToken;
                 yield updatedUser.save();
                 res.cookie('refreshToken', refreshToken, {
-                    httpOnly: true,
+                    httpOnly: false,
                     secure: true,
                     sameSite: 'strict',
                     maxAge: 7 * 24 * 60 * 60 * 1000,
@@ -188,6 +188,7 @@ let AuthController = class AuthController {
         return __awaiter(this, void 0, void 0, function* () {
             const { email, password } = req.body;
             console.log("req body", req.body);
+            console.log("ya ta aaya hu");
             const user = yield this.userService.findByEmail(email);
             if (!user) {
                 throw HttpException_1.default.Unauthorized('Invalid email or password');
@@ -207,7 +208,7 @@ let AuthController = class AuthController {
             user.refreshToken = refreshToken;
             yield user.save();
             res.cookie('refreshToken', refreshToken, {
-                httpOnly: true,
+                httpOnly: false,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict',
                 maxAge: 7 * 24 * 60 * 60 * 1000,
@@ -229,6 +230,7 @@ let AuthController = class AuthController {
     refresh(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { refreshToken } = req.cookies;
+            console.log('refreshToken', req.cookies);
             if (!refreshToken) {
                 throw HttpException_1.default.Forbidden('No refresh token provided');
             }
@@ -255,7 +257,7 @@ let AuthController = class AuthController {
                     user.refreshToken = newRefreshToken;
                     yield user.save();
                     res.cookie('refreshToken', newRefreshToken, {
-                        httpOnly: true,
+                        httpOnly: false,
                         secure: true,
                         sameSite: 'strict',
                         maxAge: 7 * 24 * 60 * 60 * 1000,

@@ -43,6 +43,12 @@ router.get(
   catchAsync(iocUserController.getAllUsers.bind(iocUserController))
 );
 
+router.get(
+  '/',
+  authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.STORE]),
+  catchAsync(iocUserController.allUsers.bind(iocUserController))
+);
+
 // Handle undefined routes
 router.all('/*', (req, res) => {
   throw HttpException.MethodNotAllowed('Route not allowed');

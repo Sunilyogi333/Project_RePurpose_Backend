@@ -1,5 +1,6 @@
 import { Document, Types } from 'mongoose';
 export interface IStore extends Document {
+    _id: Types.ObjectId;
     userID: Types.ObjectId;
     storeName: string;
     ownerName: string;

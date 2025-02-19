@@ -92,7 +92,7 @@ export class StoreController {
     try {
       // Find the KYC form associated with the authenticated user
       const kycForm = await Store.findOne({ userID: userId })
-      console.log('kyc form here', kycForm)
+      // console.log('kyc form here', kycForm)
 
       if (!kycForm) {
         throw HttpException.NotFound('No KYC form found for this user.')

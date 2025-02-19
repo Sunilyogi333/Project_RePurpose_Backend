@@ -28,6 +28,7 @@ const cloudinary_service_1 = __importDefault(require("../../services/cloudinary.
 const response_1 = require("../../utils/response");
 const statusCodes_1 = require("../../constants/statusCodes");
 const HttpException_1 = __importDefault(require("../../utils/HttpException"));
+const user_model_1 = __importDefault(require("../../models/user.model"));
 let UserController = class UserController {
     constructor(userService) {
         this.userService = userService;
@@ -104,6 +105,25 @@ let UserController = class UserController {
             }
             catch (error) {
                 throw HttpException_1.default.InternalServer('Failed to fetch users');
+            }
+        });
+    }
+    allUsers(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                console.log("req.query", req.query);
+                const { search } = req.query;
+                console.log("search", search);
+                console.log("req.user", req.user);
+                const users = yield user_model_1.default.find({
+                    email: search,
+                    _id: { $ne: req.user._id },
+                });
+                res.status(statusCodes_1.StatusCodes.SUCCESS).json((0, response_1.createResponse)(true, statusCodes_1.StatusCodes.SUCCESS, "Users retrieved successfully", users));
+            }
+            catch (error) {
+                console.error("User fetch error:", error);
+                throw HttpException_1.default.InternalServer("Error occurred while fetching users");
             }
         });
     }

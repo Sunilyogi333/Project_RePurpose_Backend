@@ -59,7 +59,8 @@ const productSchema = new mongoose_1.Schema({
     condition: { type: Number, min: 1, max: 5 },
     code: { type: String },
     seller: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
-    postedBy: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User' },
+    soldTo: { type: mongoose_1.Schema.Types.ObjectId, ref: "Store" },
+    soldPrice: { type: Number },
     status: {
         type: String,
         enum: ['AVAILABLE', 'ORDERED', 'SOLD', 'DONATED'],

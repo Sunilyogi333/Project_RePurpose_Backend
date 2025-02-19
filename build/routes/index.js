@@ -11,6 +11,7 @@ const store_routes_1 = __importDefault(require("./store.routes"));
 const product_routes_1 = __importDefault(require("./product.routes"));
 const category_routes_1 = __importDefault(require("./category.routes"));
 const chat_routes_1 = __importDefault(require("./chat.routes"));
+const message_routes_1 = __importDefault(require("./message.routes"));
 const notification_routes_1 = __importDefault(require("./notification.routes"));
 const router = (0, express_1.Router)();
 const routes = [
@@ -37,6 +38,10 @@ const routes = [
     {
         path: '/chat',
         route: chat_routes_1.default
+    },
+    {
+        path: '/message',
+        route: message_routes_1.default
     },
     {
         path: '/notifications',

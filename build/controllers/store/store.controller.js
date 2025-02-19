@@ -84,7 +84,6 @@ let StoreController = class StoreController {
             const userId = req.user._id;
             try {
                 const kycForm = yield store_model_1.default.findOne({ userID: userId });
-                console.log('kyc form here', kycForm);
                 if (!kycForm) {
                     throw HttpException_1.default.NotFound('No KYC form found for this user.');
                 }

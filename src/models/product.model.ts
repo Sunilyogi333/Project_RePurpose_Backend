@@ -37,8 +37,9 @@ const productSchema = new Schema<IProduct>(
     condition: { type: Number, min: 1, max: 5 },
     code: { type: String },
     seller: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    postedBy: { type: Schema.Types.ObjectId, ref: 'User' },
-    status: {
+    soldTo: { type: Schema.Types.ObjectId, ref: "Store" }, // Store that purchased
+    soldPrice: { type: Number }, // Final sold price   
+     status: {
       type: String,
       enum: ['AVAILABLE', 'ORDERED', 'SOLD', 'DONATED'],
       default: 'AVAILABLE',

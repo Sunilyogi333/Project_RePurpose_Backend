@@ -5,6 +5,7 @@ import cloudinaryService from '../../services/cloudinary.service';
 import { createResponse } from '../../utils/response';
 import { StatusCodes } from '../../constants/statusCodes';
 import HttpException from '../../utils/HttpException';
+import User from '../../models/user.model'
 
 @injectable()
 export class UserController {
@@ -92,4 +93,27 @@ export class UserController {
       throw HttpException.InternalServer('Failed to fetch users');
     }
   }
+
+  async allUsers(req: Request, res: Response): Promise<void> {
+    try {
+      console.log("req.query", req.query);
+  
+      const { search } = req.query;
+      console.log("search", search);
+      console.log("req.user", req.user);
+  
+      const users = await User.find({
+        email: search,
+        _id: { $ne: req.user._id }, // Exclude the authenticated user
+      });
+  
+      res.status(StatusCodes.SUCCESS).json(
+        createResponse(true, StatusCodes.SUCCESS, "Users retrieved successfully", users)
+      );
+    } catch (error) {
+      console.error("User fetch error:", error);
+      throw HttpException.InternalServer("Error occurred while fetching users");
+    }
+  }
+  
 }

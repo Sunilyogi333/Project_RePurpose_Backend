@@ -63,12 +63,6 @@ function bootStrap() {
                         });
                     }
                 });
-                socket.on('sendMessage', (data) => {
-                    const receiverSocketId = exports.users[data.receiverId];
-                    if (receiverSocketId) {
-                        exports.io.to(receiverSocketId).emit('receiveMessage', data);
-                    }
-                });
                 socket.on('disconnect', () => {
                     let disconnectedUser = null;
                     for (const userId in exports.users) {
@@ -89,6 +83,23 @@ function bootStrap() {
                         removeFromRole(exports.stores, 'store');
                         removeFromRole(exports.sellers, 'seller');
                     }
+                });
+                socket.on("join chat", (room) => {
+                    socket.join(room);
+                    console.log("User Joined Room: " + room);
+                    socket.emit("connected");
+                });
+                socket.on("typing", (room) => socket.in(room).emit("typing"));
+                socket.on("stop typing", (room) => socket.in(room).emit("stop typing"));
+                socket.on("new message", (newMessageRecieved) => {
+                    let chat = newMessageRecieved.chat;
+                    if (!chat.users)
+                        return console.log("chat.users not defined");
+                    chat.users.forEach((user) => {
+                        if (user._id === newMessageRecieved.sender._id)
+                            return;
+                        exports.io.to(exports.users[user._id]).emit("message recieved", newMessageRecieved);
+                    });
                 });
             });
             server.listen(env_config_1.EnvironmentConfiguration.PORT, () => {

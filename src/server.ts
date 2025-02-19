@@ -59,16 +59,7 @@ async function bootStrap() {
           });
         }
       });
-
-      // Send and save chat messages
-      socket.on('sendMessage', (data: { senderId: string; receiverId: string; message: string }) => {
-        const receiverSocketId = users[data.receiverId];
-        if (receiverSocketId) {
-            io.to(receiverSocketId).emit('receiveMessage', data);
-        }
-    });
     
-
       // Handle user disconnection
       socket.on('disconnect', () => {
         let disconnectedUser: string | null = null;
@@ -94,6 +85,39 @@ async function bootStrap() {
           removeFromRole(sellers, 'seller');
         }
       });
+
+      // socket.on("setup", (userData) => {
+      //   socket.join(userData._id);
+      //   console.log(userData._id);
+      //   socket.emit("connected");
+      // });
+    
+      socket.on("join chat", (room) => {
+        socket.join(room);
+        console.log("User Joined Room: " + room);
+        socket.emit("connected");
+      });
+    
+      socket.on("typing", (room) => socket.in(room).emit("typing"));
+      socket.on("stop typing", (room) => socket.in(room).emit("stop typing"));
+    
+      socket.on("new message", (newMessageRecieved) => {
+        let chat = newMessageRecieved.chat;
+      
+        if (!chat.users) return console.log("chat.users not defined");
+      
+        chat.users.forEach((user:any) => {
+          if (user._id === newMessageRecieved.sender._id) return; // Don't send to sender
+      
+          io.to(users[user._id]).emit("message recieved", newMessageRecieved);
+        });
+      });
+      
+    
+      // socket.off("setup", () => {
+      //   console.log("USER DISCONNECTED");
+      //   socket.leave(userData._id);
+      // });
     });
 
     server.listen(EnvironmentConfiguration.PORT, () => {

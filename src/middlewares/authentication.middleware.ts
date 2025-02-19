@@ -9,6 +9,7 @@ import { WebToken } from '../utils/webToken.utils';
 const authentication = (allowedRoles?: ROLE | ROLE[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     const { authorization } = req.headers;
+    // console.log('Authorization:', authorization);
 
     if (!authorization) {
       return next(HttpException.NotFound('Authorization token not found'));

@@ -104,7 +104,7 @@ export class AuthController {
   
       // Set the refresh token in a cookie
       res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
+        httpOnly: false,
         secure: true,
         sameSite: 'strict',
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
@@ -193,6 +193,7 @@ export class AuthController {
   async login(req: Request, res: Response): Promise<void> {
     const { email, password } = req.body
     console.log("req body", req.body);
+    console.log("ya ta aaya hu")
 
     // Find the user by email
     const user = await this.userService.findByEmail(email)
@@ -230,7 +231,7 @@ export class AuthController {
     await user.save()
 
     res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
+      httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict', 
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
@@ -289,6 +290,7 @@ export class AuthController {
 
   async refresh(req: Request, res: Response): Promise<void> {
     const { refreshToken } = req.cookies
+    console.log('refreshToken', req.cookies);
 
     if (!refreshToken) {
       throw HttpException.Forbidden('No refresh token provided')
@@ -332,7 +334,7 @@ export class AuthController {
 
         // Set the new refresh token in the cookie
         res.cookie('refreshToken', newRefreshToken, {
-          httpOnly: true,
+          httpOnly: false,
           secure: true,
           sameSite: 'strict',
           maxAge: 7 * 24 * 60 * 60 * 1000,
