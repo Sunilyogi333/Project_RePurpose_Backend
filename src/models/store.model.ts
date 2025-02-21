@@ -49,7 +49,6 @@ const storeSchema = new Schema<IStore>(
     storeAddress: {
       type: String,
       required: true,
-      unique: true,
     },
     businessRegNumber: {
       type: String,

@@ -53,8 +53,27 @@ const userSchema = new Schema<IUser>(
     storeName: {
       type: String,
     },
+    address: {
+      type: String,
+    },
+    about: {
+      type: String,
+    },
+    socialMediaHandles: {
+      facebook: {
+        type: String,
+      },
+      twitter: {
+        type: String,
+      },
+      instagram: {
+        type: String,
+      },
+      tiktok: {
+        type: String,
+      },
+    },
     isGoogleUser: { type: Boolean, default: false },
-
     isEmailVerified: {
       type: Boolean,
       default: false,

@@ -44,6 +44,10 @@ const productSchema = new Schema<IProduct>(
       enum: ['AVAILABLE', 'ORDERED', 'SOLD', 'DONATED'],
       default: 'AVAILABLE',
     },
+    rewardPoints: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 )

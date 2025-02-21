@@ -37,6 +37,7 @@ export class RegisterUserDTO {
   phoneNumber: string
 
   @IsString()
+  @IsOptional()
   storeName: string
 
   @IsString()
@@ -92,5 +93,5 @@ export class UpdateProfilePictureDTO {
   // @IsOptional
   // @IsString()
   // @IsNotEmpty({ message: 'Profile picture path is required' })
-  profilePicture?: string;
+  profilePicture?: string
 }

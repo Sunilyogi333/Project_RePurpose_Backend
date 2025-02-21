@@ -18,7 +18,7 @@ const iocAuthController = container.resolve(AuthController);
 // User registration route
 router.post(
   '/register',
-  RequestValidator.validate(RegisterUserDTO),
+  // RequestValidator.validate(RegisterUserDTO),
   catchAsync(iocAuthController.register.bind(iocAuthController))
 );
 

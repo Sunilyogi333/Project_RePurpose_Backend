@@ -7,7 +7,6 @@ export class LoginDTO {
 
   @IsNotEmpty()
   @IsString()
-  @IsStrongPassword()
   password: string
 }
 

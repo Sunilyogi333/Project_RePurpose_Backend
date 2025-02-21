@@ -26,7 +26,6 @@ export class AuthController {
     const { firstName, lastName, email, password, role, phoneNumber } = req.body
     const storeName = req.body?.storeName || ''
     const address = req.body?.address || ''
-
     const userData = { firstName, lastName, email, password, role, phoneNumber, storeName, address }
     const newUser = await this.userService.createUser(userData)
 
@@ -59,49 +58,50 @@ export class AuthController {
   async verifyOtp(req: Request, res: Response): Promise<Response> {
     const { userID, otp } = req.body
     console.log('req body', req.body)
-  
-    try {
+
       // Validate request
       if (!userID || !otp) {
         throw HttpException.BadRequest('User ID and OTP are required.')
       }
-  
+
       console.log('userID', userID)
-  
+
       // Find the OTP record
       const otpRecord = await OTP.findOne({ userID: userID })
       if (!otpRecord) {
         throw HttpException.NotFound('OTP record not found.')
       }
-  
+
       // Check if the OTP is expired
       if (otpRecord.expiresAt.getTime() < Date.now()) {
         throw HttpException.BadRequest('OTP has expired.')
       }
-  
+
       // Verify the OTP
       const isOtpValid = await otpRecord.isOtpCorrect(otp)
       if (!isOtpValid) {
-        throw HttpException.Unauthorized('Invalid OTP.')
+        throw HttpException.Forbidden('Invalid OTP.')
       }
-  
+
       // OTP is valid, proceed with user verification
       const updatedUser = await this.userService.updateUser(userID, { isEmailVerified: true })
       if (!updatedUser) {
-        throw HttpException.BadRequest('Failed to update the user. The user might not exist or there was an issue with the update.');
+        throw HttpException.BadRequest(
+          'Failed to update the user. The user might not exist or there was an issue with the update.'
+        )
       }
-  
+
       // Remove the OTP record after successful verification
       await OTP.deleteOne({ userId: userID })
-  
+
       // Generate tokens
       const accessToken = await updatedUser.generateAccessToken()
       const refreshToken = await updatedUser.generateRefreshToken()
-  
+
       // Save the refresh token to the user's record
       updatedUser.refreshToken = refreshToken
       await updatedUser.save()
-  
+
       // Set the refresh token in a cookie
       res.cookie('refreshToken', refreshToken, {
         httpOnly: false,
@@ -109,7 +109,7 @@ export class AuthController {
         sameSite: 'strict',
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       })
-  
+
       // Send success response with tokens
       return res.status(StatusCodes.SUCCESS).json(
         createResponse(true, StatusCodes.SUCCESS, 'Email verified and user successfully updated', {
@@ -119,17 +119,18 @@ export class AuthController {
           lastName: updatedUser.lastName,
           email: updatedUser.email,
           role: updatedUser.role,
+          address: updatedUser?.address || '',
+          about: updatedUser?.about || '',
           isEmailVerified: updatedUser.isEmailVerified,
           storeName: updatedUser?.storeName || '',
-          storeStatus: updatedUser?.storeStatus || ''
+          profilePicture: updatedUser?.profilePicture || '',
+          phoneNumber: updatedUser?.phoneNumber || '',
+          storeStatus: updatedUser?.storeStatus || '',
+          totalRewardPoints: updatedUser.totalRewardPoints,
+          socialMediaHandles: updatedUser?.socialMediaHandles || {},
         })
       )
-    } catch (error) {
-      console.error('Error during OTP verification:', error)
-      throw HttpException.InternalServer('Unable to verify OTP')
-    }
   }
-  
 
   // Resend OTP to user if email is verified
   async resendOTP(req: Request, res: Response): Promise<void> {
@@ -192,13 +193,13 @@ export class AuthController {
 
   async login(req: Request, res: Response): Promise<void> {
     const { email, password } = req.body
-    console.log("req body", req.body);
-    console.log("ya ta aaya hu")
+    console.log('req body', req.body)
+    console.log('ya ta aaya hu')
 
     // Find the user by email
     const user = await this.userService.findByEmail(email)
     if (!user) {
-      throw HttpException.Unauthorized('Invalid email or password')
+      throw HttpException.BadRequest('Invalid email or password')
     }
 
     // Check if the email is verified
@@ -219,7 +220,7 @@ export class AuthController {
     // Validate the password
     const isPasswordValid = await user.isPasswordCorrect(password)
     if (!isPasswordValid) {
-      throw HttpException.Unauthorized('Invalid email or password')
+      throw HttpException.BadRequest('Invalid email or password')
     }
 
     // Generate tokens
@@ -233,9 +234,9 @@ export class AuthController {
     res.cookie('refreshToken', refreshToken, {
       httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict', 
+      sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    })
 
     // Send the response
     res.status(StatusCodes.SUCCESS).json(
@@ -247,9 +248,14 @@ export class AuthController {
         lastName: user.lastName,
         email: user.email,
         role: user.role,
+        about: user?.about || '',
+        address: user?.address || '',
         storeName: user?.storeName || '',
         profilePicture: user?.profilePicture || '',
-        storeStatus: user?.storeStatus
+        phoneNumber: user?.phoneNumber || '',
+        storeStatus: user?.storeStatus || '',
+        totalRewardPoints: user?.totalRewardPoints,
+        socialMediaHandles: user?.socialMediaHandles || {},
       })
     )
   }
@@ -290,7 +296,7 @@ export class AuthController {
 
   async refresh(req: Request, res: Response): Promise<void> {
     const { refreshToken } = req.cookies
-    console.log('refreshToken', req.cookies);
+    console.log('refreshToken', req.cookies)
 
     if (!refreshToken) {
       throw HttpException.Forbidden('No refresh token provided')
@@ -481,19 +487,37 @@ export class AuthController {
     )
   }
 
+  // async logout(req: Request, res: Response): Promise<void> {
+  //   const { refreshToken } = req.cookies
+
+  //   if (!refreshToken) {
+  //     throw HttpException.BadRequest('No refresh token provided')
+  //   }
+
+  //   const user = await this.userService.findByRefreshToken(refreshToken)
+  //   if (user) {
+  //     user.refreshToken = undefined
+  //     await user.save()
+  //   }
+
+  //   res.clearCookie('refreshToken', {
+  //     httpOnly: true,
+  //     secure: true,
+  //     sameSite: 'strict',
+  //   })
+
+  //   res.status(StatusCodes.SUCCESS).json(createResponse(true, StatusCodes.SUCCESS, 'Logout successful'))
+  // }
+
   async logout(req: Request, res: Response): Promise<void> {
-    const { refreshToken } = req.cookies
-
-    if (!refreshToken) {
-      throw HttpException.BadRequest('No refresh token provided')
+    if (!req.user?._id) {
+      throw HttpException.BadRequest('User not authenticated')
     }
 
-    const user = await this.userService.findByRefreshToken(refreshToken)
-    if (user) {
-      user.refreshToken = undefined
-      await user.save()
-    }
+    // Update the user's refresh token to null
+    await this.userService.updateUser(req.user._id, { refreshToken: undefined })
 
+    // Clear the refresh token cookie
     res.clearCookie('refreshToken', {
       httpOnly: true,
       secure: true,

@@ -12,12 +12,20 @@ export interface IUser extends Document {
   phoneNumber: string;
   role: ROLE;
   storeName?: string;
+  address?: string;
+  about?: string;
   storeStatus?: string;
   isGoogleUser: boolean;
   isEmailVerified: boolean;
   isProfileCompleted: boolean;
   refreshToken?: string;
   totalRewardPoints: number;
+  socialMediaHandles?: {
+    facebook?: string;
+    twitter?: string;
+    instagram?: string;
+    tiktok?: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 

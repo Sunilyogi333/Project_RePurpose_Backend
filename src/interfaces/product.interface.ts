@@ -16,6 +16,7 @@ export interface IProduct extends Document {
   seller: Types.ObjectId;
   soldTo: Types.ObjectId;
   soldPrice: number;
+  rewardPoints: number;
   status: string;
   createdAt: Date;
   updatedAt: Date;

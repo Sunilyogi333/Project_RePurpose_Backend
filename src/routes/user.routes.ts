@@ -32,7 +32,7 @@ router.patch(
 router.patch(
   '/edit',
   authentication([ROLE.MEMBER, ROLE.SELLER, ROLE.STORE]),
-  RequestValidator.validate(EditUserDTO),
+  // RequestValidator.validate(EditUserDTO),
   catchAsync(iocUserController.editAccountDetails.bind(iocUserController))
 );
 

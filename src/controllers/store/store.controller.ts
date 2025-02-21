@@ -108,26 +108,38 @@ export class StoreController {
   }
 
   async getPendingStores(req: Request, res: Response): Promise<void> {
-    try {
-      // Fetch only stores with status 'pending'
-      const pendingStores = await Store.find({ status: 'pending' })
+    // Fetch only stores with status 'pending'
+    const pendingStores = await Store.find({ status: 'pending' })
 
-      // Check if there are any pending stores
-      if (!pendingStores.length) {
-        res
-          .status(StatusCodes.NOT_FOUND)
-          .json(createResponse(false, StatusCodes.NOT_FOUND, 'No pending stores found', []))
-        return
-      }
-
-      // Respond with the pending stores
+    // Check if there are any pending stores
+    if (!pendingStores.length) {
       res
-        .status(StatusCodes.SUCCESS)
-        .json(createResponse(true, StatusCodes.SUCCESS, 'Pending stores fetched successfully', pendingStores))
-    } catch (error) {
-      console.error('Error fetching pending stores:', error)
-      throw HttpException.InternalServer('Failed to fetch pending stores')
+        .status(StatusCodes.NOT_FOUND)
+        .json(createResponse(false, StatusCodes.NOT_FOUND, 'No pending stores found', []))
+      return
     }
+
+    // Respond with the pending stores
+    res
+      .status(StatusCodes.SUCCESS)
+      .json(createResponse(true, StatusCodes.SUCCESS, 'Pending stores fetched successfully', pendingStores))
+  }
+
+  async getVerifiedStores(req: Request, res: Response): Promise<void> {
+    // Fetch only stores with status 'pending'
+    const verifiedStores = await Store.find({ status: 'approved' })
+
+    // Check if there are any pending stores
+    if (!verifiedStores.length) {
+      res
+        .status(StatusCodes.NOT_FOUND)
+        .json(createResponse(false, StatusCodes.NOT_FOUND, 'No verified stores found', []))
+      return
+    }
+    // Respond with the pending stores
+    res
+      .status(StatusCodes.SUCCESS)
+      .json(createResponse(true, StatusCodes.SUCCESS, 'Pending stores fetched successfully', verifiedStores))
   }
 
   async getStores(req: Request, res: Response): Promise<void> {
@@ -203,7 +215,7 @@ export class StoreController {
   async requestModificationStore(req: Request, res: Response): Promise<void> {
     try {
       const { storeId } = req.params // Extract the store ID from the route parameters
-      console.log("req.body", req.body)
+      console.log('req.body', req.body)
       const { modificationReason } = req.body // Optional rejection reason from the request body
       console.log('modification reason', modificationReason)
 

@@ -38,6 +38,12 @@ router.get(
 );
 
 router.get(
+  '/verified',
+  authentication([ROLE.STORE, ROLE.ADMIN]),
+  catchAsync(iocStoreController.getVerifiedStores.bind(iocStoreController))
+);
+
+router.get(
   '/my-kyc',
   authentication([ROLE.STORE]),
   catchAsync(iocStoreController.getMyStoreKYC.bind(iocStoreController))
