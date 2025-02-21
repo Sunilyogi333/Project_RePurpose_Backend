@@ -23,12 +23,12 @@ export class AuthController {
   }
 
   async register(req: Request, res: Response): Promise<void> {
-    const { firstName, lastName, email, password, role, phoneNumber, address } = req.body;
+    const { firstName, lastName, email, password, role, phoneNumber, address } = req.body
     const storeName = req.body?.storeName || ''
     const userData = { firstName, lastName, email, password, role, phoneNumber, storeName, address }
     const newUser = await this.userService.createUser(userData)
-    
-    console.log("register newUser ko console: ", req.body);
+
+    console.log('register newUser ko console: ', req.body)
 
     const otp = generateOtp()
 
@@ -61,77 +61,77 @@ export class AuthController {
     const { userID, otp } = req.body
     console.log('req body', req.body)
 
-      // Validate request
-      if (!userID || !otp) {
-        throw HttpException.BadRequest('User ID and OTP are required.')
-      }
+    // Validate request
+    if (!userID || !otp) {
+      throw HttpException.BadRequest('User ID and OTP are required.')
+    }
 
-      console.log('userID', userID)
+    console.log('userID', userID)
 
-      // Find the OTP record
-      const otpRecord = await OTP.findOne({ userID: userID })
-      if (!otpRecord) {
-        throw HttpException.NotFound('OTP record not found.')
-      }
+    // Find the OTP record
+    const otpRecord = await OTP.findOne({ userID: userID })
+    if (!otpRecord) {
+      throw HttpException.NotFound('OTP record not found.')
+    }
 
-      // Check if the OTP is expired
-      if (otpRecord.expiresAt.getTime() < Date.now()) {
-        throw HttpException.BadRequest('OTP has expired.')
-      }
+    // Check if the OTP is expired
+    if (otpRecord.expiresAt.getTime() < Date.now()) {
+      throw HttpException.BadRequest('OTP has expired.')
+    }
 
-      // Verify the OTP
-      const isOtpValid = await otpRecord.isOtpCorrect(otp)
-      if (!isOtpValid) {
-        throw HttpException.Forbidden('Invalid OTP.')
-      }
+    // Verify the OTP
+    const isOtpValid = await otpRecord.isOtpCorrect(otp)
+    if (!isOtpValid) {
+      throw HttpException.Forbidden('Invalid OTP.')
+    }
 
-      // OTP is valid, proceed with user verification
-      const updatedUser = await this.userService.updateUser(userID, { isEmailVerified: true })
-      if (!updatedUser) {
-        throw HttpException.BadRequest(
-          'Failed to update the user. The user might not exist or there was an issue with the update.'
-        )
-      }
-
-      // Remove the OTP record after successful verification
-      await OTP.deleteOne({ userId: userID })
-
-      // Generate tokens
-      const accessToken = await updatedUser.generateAccessToken()
-      const refreshToken = await updatedUser.generateRefreshToken()
-
-      // Save the refresh token to the user's record
-      updatedUser.refreshToken = refreshToken
-      await updatedUser.save()
-
-      // Set the refresh token in a cookie
-      res.cookie('refreshToken', refreshToken, {
-        httpOnly: false,
-        secure: true,
-        sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      })
-
-      // Send success response with tokens
-      return res.status(StatusCodes.SUCCESS).json(
-        createResponse(true, StatusCodes.SUCCESS, 'Email verified and user successfully updated', {
-          id: updatedUser._id,
-          token: accessToken,
-          firstName: updatedUser.firstName,
-          lastName: updatedUser.lastName,
-          email: updatedUser.email,
-          role: updatedUser.role,
-          address: updatedUser?.address || '',
-          about: updatedUser?.about || '',
-          isEmailVerified: updatedUser.isEmailVerified,
-          storeName: updatedUser?.storeName || '',
-          profilePicture: updatedUser?.profilePicture || '',
-          phoneNumber: updatedUser?.phoneNumber || '',
-          storeStatus: updatedUser?.storeStatus || '',
-          totalRewardPoints: updatedUser.totalRewardPoints,
-          socialMediaHandles: updatedUser?.socialMediaHandles || {},
-        })
+    // OTP is valid, proceed with user verification
+    const updatedUser = await this.userService.updateUser(userID, { isEmailVerified: true })
+    if (!updatedUser) {
+      throw HttpException.BadRequest(
+        'Failed to update the user. The user might not exist or there was an issue with the update.'
       )
+    }
+
+    // Remove the OTP record after successful verification
+    await OTP.deleteOne({ userId: userID })
+
+    // Generate tokens
+    const accessToken = await updatedUser.generateAccessToken()
+    const refreshToken = await updatedUser.generateRefreshToken()
+
+    // Save the refresh token to the user's record
+    updatedUser.refreshToken = refreshToken
+    await updatedUser.save()
+
+    // Set the refresh token in a cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: false,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    })
+
+    // Send success response with tokens
+    return res.status(StatusCodes.SUCCESS).json(
+      createResponse(true, StatusCodes.SUCCESS, 'Email verified and user successfully updated', {
+        id: updatedUser._id,
+        token: accessToken,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        address: updatedUser?.address || '',
+        about: updatedUser?.about || '',
+        isEmailVerified: updatedUser.isEmailVerified,
+        storeName: updatedUser?.storeName || '',
+        profilePicture: updatedUser?.profilePicture || '',
+        phoneNumber: updatedUser?.phoneNumber || '',
+        storeStatus: updatedUser?.storeStatus || '',
+        totalRewardPoints: updatedUser.totalRewardPoints,
+        socialMediaHandles: updatedUser?.socialMediaHandles || {},
+      })
+    )
   }
 
   // Resend OTP to user if email is verified
@@ -513,7 +513,7 @@ export class AuthController {
 
   async logout(req: Request, res: Response): Promise<void> {
     if (!req.user?._id) {
-      throw HttpException.BadRequest('User not authenticated')
+      throw HttpException.Forbidden('User not authenticated')
     }
 
     // Update the user's refresh token to null
