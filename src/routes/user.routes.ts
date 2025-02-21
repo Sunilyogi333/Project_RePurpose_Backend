@@ -49,6 +49,24 @@ router.get(
   catchAsync(iocUserController.allUsers.bind(iocUserController))
 );
 
+router.delete(
+  '/:userId',
+  authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.STORE]),
+  catchAsync(iocUserController.deleteUserById.bind(iocUserController))
+);
+
+router.get(
+  '/sellers',
+  authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.STORE]),
+  catchAsync(iocUserController.getUserWithRoleSeller.bind(iocUserController))
+);
+
+router.get(
+  '/stores',
+  authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.STORE]),
+  catchAsync(iocUserController.getUserWithRoleStore.bind(iocUserController))
+);
+
 // Handle undefined routes
 router.all('/*', (req, res) => {
   throw HttpException.MethodNotAllowed('Route not allowed');
