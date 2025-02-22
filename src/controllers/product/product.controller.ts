@@ -13,6 +13,7 @@ import { io } from '../../server'
 import PurchaseRequest from '../../models/purchaseRequest.model'
 import Store from '../../models/store.model'
 import Product from '../../models/product.model'
+import { IProduct } from '../../interfaces/product.interface'
 
 @injectable()
 export class ProductController {
@@ -478,6 +479,25 @@ export class ProductController {
     res
       .status(StatusCodes.SUCCESS)
       .json(createResponse(true, StatusCodes.SUCCESS, 'Requests fetched successfully', existingRequest))
+  }
+
+  async getAllPendingProducts(req: Request, res: Response): Promise<void> {
+    // Fetch only stores with status 'pending'
+    const products: IProduct[] = await Product.find({ status: 'AVAILABLE' }).populate('seller', 'firstName lastName');
+    console.log("products", products);
+
+    // Check if there are any pending stores
+    if (!products.length) {
+      res
+        .status(StatusCodes.NOT_FOUND)
+        .json(createResponse(false, StatusCodes.NOT_FOUND, 'No product found', []))
+      return
+    }
+
+    // Respond with the pending stores
+    res
+      .status(StatusCodes.SUCCESS)
+      .json(createResponse(true, StatusCodes.SUCCESS, 'product Details fetched successfully', products))
   }
 
   async getRewardPoints(req: Request, res: Response): Promise<Response> {

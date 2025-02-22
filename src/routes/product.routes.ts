@@ -48,6 +48,12 @@ router.get(
   authentication([ROLE.ADMIN, ROLE.MEMBER, ROLE.SELLER, ROLE.STORE]),
   catchAsync(productController.getProducts.bind(productController))
 )
+// Get all pending products
+router.get(
+  '/all/Pending',
+  authentication([ROLE.ADMIN, ROLE.MEMBER, ROLE.SELLER, ROLE.STORE]),
+  catchAsync(productController.getAllPendingProducts.bind(productController))
+)
 
 // Get pending products
 router.get(

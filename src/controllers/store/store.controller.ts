@@ -132,7 +132,7 @@ export class StoreController {
 
   async getVerifiedStores(req: Request, res: Response): Promise<void> {
       // Fetch only stores with status 'verified'
-      const verifiedStores = await Store.find({ status: 'verified' })
+      const verifiedStores = await Store.find({ status: 'approved' })
 
       // Check if there are any pending stores
       if (!verifiedStores.length) {
