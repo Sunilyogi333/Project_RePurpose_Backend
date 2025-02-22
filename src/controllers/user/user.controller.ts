@@ -7,6 +7,7 @@ import { StatusCodes } from '../../constants/statusCodes'
 import HttpException from '../../utils/HttpException'
 import User from '../../models/user.model'
 import { IUser } from '../../interfaces/user.interface'
+import Report from '../../models/report.model'
 
 @injectable()
 export class UserController {
@@ -85,7 +86,7 @@ export class UserController {
 
       // Update user details
       const updatedUser = await this.userService.updateUser(req.user._id, updateData)
-      console.log("updatedUser", updatedUser)
+      console.log('updatedUser', updatedUser)
 
       res
         .status(StatusCodes.SUCCESS)
@@ -130,15 +131,15 @@ export class UserController {
 
   async getUserWithRoleSeller(req: Request, res: Response): Promise<void> {
     // Fetch only stores with status 'pending'
-    const sellers: IUser[] = await User.find({ role: 'seller' }).select('-password -storeName -refreshToken -isEmailVerified -isProfileCompleted -storeStatus -isGoogleUser -googleId')
-    
-    console.log("seller", sellers);
+    const sellers: IUser[] = await User.find({ role: 'seller' }).select(
+      '-password -storeName -refreshToken -isEmailVerified -isProfileCompleted -storeStatus -isGoogleUser -googleId'
+    )
+
+    console.log('seller', sellers)
 
     // Check if there are any pending stores
     if (!sellers.length) {
-      res
-        .status(StatusCodes.NOT_FOUND)
-        .json(createResponse(false, StatusCodes.NOT_FOUND, 'No seller found', []))
+      res.status(StatusCodes.NOT_FOUND).json(createResponse(false, StatusCodes.NOT_FOUND, 'No seller found', []))
       return
     }
 
@@ -150,15 +151,15 @@ export class UserController {
 
   async getUserWithRoleStore(req: Request, res: Response): Promise<void> {
     // Fetch only stores with status 'pending'
-    const stores: IUser[] = await User.find({ role: 'store' }).select('-password -refreshToken -totalRewardPoints -isEmailVerified -isProfileCompleted -isGoogleUser -googleId')
-    
-    console.log("seller", stores);
+    const stores: IUser[] = await User.find({ role: 'store' }).select(
+      '-password -refreshToken -totalRewardPoints -isEmailVerified -isProfileCompleted -isGoogleUser -googleId'
+    )
+
+    console.log('seller', stores)
 
     // Check if there are any pending stores
     if (!stores.length) {
-      res
-        .status(StatusCodes.NOT_FOUND)
-        .json(createResponse(false, StatusCodes.NOT_FOUND, 'No seller found', []))
+      res.status(StatusCodes.NOT_FOUND).json(createResponse(false, StatusCodes.NOT_FOUND, 'No seller found', []))
       return
     }
 
@@ -169,18 +170,111 @@ export class UserController {
   }
 
   async deleteUserById(req: Request, res: Response): Promise<void> {
-    const { userId } = req.params;
-  
+    const { userId } = req.params
+
     // Check if the user exists
-    const user = await User.findById(userId);
+    const user = await User.findById(userId)
     if (!user) {
-      res.status(404).json({ message: "User not found" });
-      return;
+      res.status(404).json({ message: 'User not found' })
+      return
     }
-  
+
     // Delete the user
-    await User.findByIdAndDelete(userId);
-  
-    res.status(StatusCodes.SUCCESS).json( createResponse(true, StatusCodes.SUCCESS, "User deleted successfully", user));
+    await User.findByIdAndDelete(userId)
+
+    res.status(StatusCodes.SUCCESS).json(createResponse(true, StatusCodes.SUCCESS, 'User deleted successfully', user))
+  }
+
+  async addReport(req: Request, res: Response): Promise<void> {
+    try {
+      const { category, title, description } = req.body
+      const userId = req.user?._id
+
+      if (!userId) {
+        throw HttpException.Unauthorized('User not authenticated')
+      }
+
+      let attachmentUrl: string | undefined
+
+      if (req.file) {
+        const uploadResult = await cloudinaryService.uploadImage(req.file.path)
+        if (!uploadResult) {
+          throw HttpException.BadRequest('Failed to upload attachment')
+        }
+        attachmentUrl = uploadResult.secure_url
+      }
+
+      const report = new Report({
+        user: userId,
+        category,
+        title,
+        description,
+        attachmentUrl,
+      })
+
+      await report.save()
+
+      res
+        .status(StatusCodes.CREATED)
+        .json(createResponse(true, StatusCodes.CREATED, 'Report submitted successfully', report))
+    } catch (error) {
+      throw HttpException.InternalServer('Error submitting report')
+    }
+  }
+
+  // Get all reports
+  async getAllReports(req: Request, res: Response): Promise<void> {
+    try {
+      const reports = await Report.find().populate('user', 'name email'); // Populating user info if needed
+      res
+        .status(StatusCodes.SUCCESS)
+        .json(createResponse(true, StatusCodes.SUCCESS, 'All reports fetched successfully', reports));
+    } catch (error) {
+      throw HttpException.InternalServer('Error fetching reports');
+    }
+  }
+
+  // Get reports based on status
+  async getReportsBasedOnStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const { status } = req.params;
+
+      if (!['pending', 'progress', 'resolved', 'rejected'].includes(status)) {
+        throw HttpException.BadRequest('Invalid status');
+      }
+
+      const reports = await Report.find({ status }).populate('user', 'name email');
+      res
+        .status(StatusCodes.SUCCESS)
+        .json(createResponse(true, StatusCodes.SUCCESS, `Reports with status: ${status}`, reports));
+    } catch (error) {
+      throw HttpException.InternalServer('Error fetching reports based on status');
+    }
+  }
+
+  // Update report status
+  async updateReportStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const { reportId } = req.params;
+      const { status } = req.body;
+
+      if (!['pending', 'progress', 'resolved', 'rejected'].includes(status)) {
+        throw HttpException.BadRequest('Invalid status');
+      }
+
+      const report = await Report.findById(reportId);
+      if (!report) {
+        throw HttpException.NotFound('Report not found');
+      }
+
+      report.status = status;
+      await report.save();
+
+      res
+        .status(StatusCodes.SUCCESS)
+        .json(createResponse(true, StatusCodes.SUCCESS, 'Report status updated successfully', report));
+    } catch (error) {
+      throw HttpException.InternalServer('Error updating report status');
+    }
   }
 }

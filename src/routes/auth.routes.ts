@@ -74,6 +74,12 @@ router.patch(
   catchAsync(iocAuthController.changePassword.bind(iocAuthController))
 );
 
+router.delete(
+  '/me',
+  authentication([ROLE.MEMBER, ROLE.SELLER, ROLE.ADMIN]),
+  catchAsync(iocAuthController.deleteMyAccount.bind(iocAuthController))
+)
+
 router.get(
   '/google',
   passport.authenticate('google', { scope: ['profile', 'email'] }),

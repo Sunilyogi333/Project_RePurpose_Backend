@@ -67,6 +67,26 @@ router.get(
   catchAsync(iocUserController.getUserWithRoleStore.bind(iocUserController))
 );
 
+router.post(
+  '/report',
+  authentication([ROLE.MEMBER, ROLE.SELLER, ROLE.STORE]),
+  upload?.single('attachment'), 
+  catchAsync(iocUserController.addReport.bind(iocUserController))
+);
+
+router.get(
+  '/status/:status',
+  authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.STORE]),
+  catchAsync(iocUserController.getReportsBasedOnStatus.bind(iocUserController))
+);
+
+// Edit account details
+router.patch(
+  '/reports/status/:reportId',
+  authentication([ROLE.MEMBER, ROLE.SELLER, ROLE.STORE]),
+  catchAsync(iocUserController.updateReportStatus.bind(iocUserController))
+);
+
 // Handle undefined routes
 router.all('/*', (req, res) => {
   throw HttpException.MethodNotAllowed('Route not allowed');

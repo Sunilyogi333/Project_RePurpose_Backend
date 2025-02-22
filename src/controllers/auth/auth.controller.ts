@@ -432,6 +432,7 @@ export class AuthController {
 
   async changePassword(req: Request, res: Response): Promise<void> {
     const { oldPassword, newPassword } = req.body
+    console.log("req body", req.body)
     const userId = req.user._id
 
     try {
@@ -455,6 +456,38 @@ export class AuthController {
       throw HttpException.InternalServer('Internal Server Error')
     }
   }
+  async deleteMyAccount(req: Request, res: Response): Promise<void> {
+    if (!req.user?._id) {
+      throw HttpException.Forbidden('User not authenticated')
+    }
+  
+    const userId = req.user._id
+  
+    try {
+      // Find the user
+      const user = await this.userService.findUserById(userId)
+  
+      if (!user) {
+        throw HttpException.NotFound('User not found')
+      }
+  
+      // Delete the user
+      await this.userService.deleteUser(userId)
+  
+      // Clear authentication cookies
+      res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+      })
+  
+      res.status(StatusCodes.SUCCESS).json(createResponse(true, StatusCodes.SUCCESS, 'Account deleted successfully'))
+    } catch (error) {
+      console.error('Error deleting account:', error)
+      throw HttpException.InternalServer('Internal Server Error')
+    }
+  }
+  
 
   async googleAuth(req: Request, res: Response): Promise<void> {
     // This route only initiates Google authentication.
