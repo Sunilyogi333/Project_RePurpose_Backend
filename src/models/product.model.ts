@@ -37,14 +37,18 @@ const productSchema = new Schema<IProduct>(
     condition: { type: Number, min: 1, max: 5 },
     code: { type: String },
     seller: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    soldTo: { type: Schema.Types.ObjectId, ref: "Store" }, // Store that purchased
-    soldPrice: { type: Number }, // Final sold price   
-     status: {
+    soldTo: { type: Schema.Types.ObjectId, ref: 'Store' }, // Store that purchased
+    soldPrice: { type: Number }, // Final sold price
+    status: {
       type: String,
       enum: ['AVAILABLE', 'ORDERED', 'SOLD', 'DONATED'],
       default: 'AVAILABLE',
     },
     rewardPoints: {
+      type: Number,
+      default: 0,
+    },
+    contributionToEnvironment: {
       type: Number,
       default: 0,
     },

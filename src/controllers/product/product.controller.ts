@@ -14,6 +14,7 @@ import PurchaseRequest from '../../models/purchaseRequest.model'
 import Store from '../../models/store.model'
 import Product from '../../models/product.model'
 import { IProduct } from '../../interfaces/product.interface'
+import { ObjectId } from 'mongoose'
 
 @injectable()
 export class ProductController {
@@ -112,14 +113,8 @@ export class ProductController {
     try {
       // Populate the soldTo field (which refers to the Store model)
       const product = await Product.findById(id)
-        .populate(
-          'seller',
-          '_id firstName lastName profilepicture email'
-        )
-        .populate(
-        'soldTo',
-        '_id userID storeName ownerName storeFrontImage email phoneNumber storeNumber storeAddress'
-      )
+        .populate('seller', '_id firstName lastName profilepicture email')
+        .populate('soldTo', '_id userID storeName ownerName storeFrontImage email phoneNumber storeNumber storeAddress')
 
       if (!product) {
         throw HttpException.NotFound('Product not found')
@@ -245,24 +240,35 @@ export class ProductController {
   }
 
   async getPendingProductsBySellerId(req: Request, res: Response): Promise<void> {
-    const { sellerId } = req.params;
-    console.log("sellerid",sellerId)
+    const { sellerId } = req.params
+    console.log('sellerid', sellerId)
 
-    try {
-      // Fetch products where status is 'AVAILABLE' and sellerId matches
-      const products = await Product.find({seller: sellerId, status: 'AVAILABLE' })
+    // Fetch products where status is 'AVAILABLE' and sellerId matches
+    const products = await Product.find({ seller: sellerId, status: 'AVAILABLE' })
 
-      if (!products || products.length === 0) {
-        throw HttpException.NotFound('No pending products found for this seller')
-      }
-
-      res
-        .status(StatusCodes.SUCCESS)
-        .json(createResponse(true, StatusCodes.SUCCESS, 'Pending products fetched successfully', products))
-    } catch (error) {
-      console.error(error)
-      throw HttpException.InternalServer('Failed to fetch pending products for the seller')
+    if (!products || products.length === 0) {
+      throw HttpException.NotFound('No pending products found for this seller')
     }
+
+    res
+      .status(StatusCodes.SUCCESS)
+      .json(createResponse(true, StatusCodes.SUCCESS, 'Pending products fetched successfully', products))
+  }
+
+  async getSoldProductsBySellerId(req: Request, res: Response): Promise<void> {
+    const { sellerId } = req.params
+    console.log('sellerid', sellerId)
+
+    // Fetch products where status is 'AVAILABLE' and sellerId matches
+    const products = await Product.find({ seller: sellerId, status: 'SOLD' })
+
+    if (!products || products.length === 0) {
+      throw HttpException.NotFound('No products has been sold yet')
+    }
+
+    res
+      .status(StatusCodes.SUCCESS)
+      .json(createResponse(true, StatusCodes.SUCCESS, 'Pending products fetched successfully', products))
   }
 
   async requestForBuy(req: Request, res: Response): Promise<void> {
@@ -316,7 +322,6 @@ export class ProductController {
       .status(StatusCodes.SUCCESS)
       .json(createResponse(true, StatusCodes.SUCCESS, 'Requests fetched successfully', requests))
   }
-
 
   // async acceptRequestOnProduct(req: Request, res: Response): Promise<void> {
   //   const { productId, requestId } = req.params
@@ -373,75 +378,92 @@ export class ProductController {
   // }
 
   async acceptRequestOnProduct(req: Request, res: Response): Promise<void> {
-    const { productId, requestId } = req.params;
+    const { productId, requestId } = req.params
   
     // Populate the store field
-    const request = await PurchaseRequest.findById(requestId).populate('store');
+    const request = await PurchaseRequest.findById(requestId).populate('store')
     if (!request || request.status !== 'PENDING') {
-      throw HttpException.NotFound('Request not found or already processed');
+      throw HttpException.NotFound('Request not found or already processed')
     }
   
-    console.log('request chai you ro aaba', request);
+    console.log('Request details:', request)
   
     // Ensure TypeScript recognizes store as a proper object
     const store = request.store as unknown as {
-      _id: string;
-      storeName: string;
-      ownerName: string;
-      storeFrontImage: string;
-      email: string;
-      phoneNumber: string;
-    };
+      _id: string
+      storeName: string
+      ownerName: string
+      storeFrontImage: string
+      email: string
+      phoneNumber: string
+    }
   
     // Update the request status
-    request.status = 'APPROVED';
-    await request.save();
+    request.status = 'APPROVED'
+    await request.save()
   
     // Reject all other requests for the same product
-    await PurchaseRequest.updateMany({ product: productId, _id: { $ne: requestId } }, { status: 'REJECTED'});
+    await PurchaseRequest.updateMany({ product: productId, _id: { $ne: requestId } }, { status: 'REJECTED' })
   
     // Get the product
-    const product = await this.productService.getProductById(productId);
+    const product = await this.productService.getProductById(productId)
     if (!product) {
-      throw HttpException.NotFound('Product not found');
+      throw HttpException.NotFound('Product not found')
     }
-    product.soldPrice = request.proposedPrice;
-    await product.save;
+  
+    product.soldPrice = request.proposedPrice
+    await product.save()
+  
+    // **Calculate 1% of soldPrice for contribution**
+    const contributionAmount = product.soldPrice * 0.01
+    const remainingAmount = product.soldPrice - contributionAmount
+  
+    // Add 1% to the product's contribution field
+    product.contributionToEnvironment = (product.contributionToEnvironment || 0) + contributionAmount
+    product.status = 'SOLD'
+    product.soldTo = request.store
+  
+    await product.save()
   
     // Prepare input data for reward point calculation
     const inputData = {
       part_name: product.partName.toUpperCase(),
       material: product.materialName.toLowerCase(),
       eco_friendly: product.ecoFriendly,
-      item_price: product.soldPrice
-    };
+      item_price: product.soldPrice,
+    }
   
     // Fetch reward points using the Python script
     try {
-      const points:any = await this.getRewardPoint(inputData);
-      console.log("resards", points);
-      const rewardPoints = points.reward_points;
+      const points: any = await this.getRewardPoint(inputData)
+      console.log('Reward Points:', points)
+      const rewardPoints = points.reward_points
   
-      // Update the product status and add reward points
-      product.status = 'SOLD';
-      product.soldTo = request.store;
-      product.rewardPoints = rewardPoints as number; // Assuming the Python script returns reward points
-      await product.save();
+      // Update reward points on product
+      product.rewardPoints = rewardPoints as number
+      await product.save()
   
       // Get the seller (user) by req.user._id
-      const seller = await User.findById(req.user._id);
+      const seller = await User.findById(req.user._id)
       if (!seller) {
-        throw HttpException.NotFound('Seller not found');
+        throw HttpException.NotFound('Seller not found')
       }
   
-      // Add reward points to the seller's totalRewardPoints
-      seller.totalRewardPoints += rewardPoints as number;
-      await seller.save();
-
-      console.log("Product", product)
-      console.log("Seller", seller)
+      // Add reward points to seller's totalRewardPoints
+      seller.totalRewardPoints += rewardPoints as number
   
-      // Send the response with store details
+      // Add the contributionAmount to seller's totalContributionToEnvironment
+      seller.totalContributionToEnvironment = (seller.totalContributionToEnvironment || 0) + contributionAmount
+  
+      // Add remaining amount (99% of soldPrice) to seller's total earnings
+      seller.totalEarning = (seller.totalEarning || 0) + remainingAmount
+  
+      await seller.save()
+  
+      console.log('Updated Product:', product)
+      console.log('Updated Seller:', seller)
+  
+      // Send response with store and earnings details
       res.status(StatusCodes.SUCCESS).json(
         createResponse(true, StatusCodes.SUCCESS, 'Request approved successfully', {
           request,
@@ -455,13 +477,18 @@ export class ProductController {
           },
           points: {
             productRewardPoints: rewardPoints,
-            sellerTotalRewardPoints: seller.totalRewardPoints
-          }
+            sellerTotalRewardPoints: seller.totalRewardPoints,
+          },
+          earnings: {
+            contributionAmount,
+            totalContributionToEnvironment: seller.totalContributionToEnvironment,
+            totalEarning: seller.totalEarning,
+          },
         })
-      );
+      )
     } catch (error) {
-      console.error('Error fetching reward points:', error);
-      throw HttpException.InternalServer('Failed to calculate reward points');
+      console.error('Error fetching reward points:', error)
+      throw HttpException.InternalServer('Failed to calculate reward points')
     }
   }
   
@@ -483,14 +510,12 @@ export class ProductController {
 
   async getAllPendingProducts(req: Request, res: Response): Promise<void> {
     // Fetch only stores with status 'pending'
-    const products: IProduct[] = await Product.find({ status: 'AVAILABLE' }).populate('seller', 'firstName lastName');
-    console.log("products", products);
+    const products: IProduct[] = await Product.find({ status: 'AVAILABLE' }).populate('seller', 'firstName lastName')
+    console.log('products', products)
 
     // Check if there are any pending stores
     if (!products.length) {
-      res
-        .status(StatusCodes.NOT_FOUND)
-        .json(createResponse(false, StatusCodes.NOT_FOUND, 'No product found', []))
+      res.status(StatusCodes.NOT_FOUND).json(createResponse(false, StatusCodes.NOT_FOUND, 'No product found', []))
       return
     }
 
@@ -499,6 +524,98 @@ export class ProductController {
       .status(StatusCodes.SUCCESS)
       .json(createResponse(true, StatusCodes.SUCCESS, 'product Details fetched successfully', products))
   }
+
+  async getAllPendingProductsForMe(req: Request, res: Response): Promise<void> {
+    // Fetch only stores with status 'AVAILABLE'
+    const products: IProduct[] = await Product.find({ status: 'AVAILABLE' }).populate('seller', 'firstName lastName')
+
+    console.log('products', products)
+
+    // Check if there are any products
+    if (!products.length) {
+      throw HttpException.NotFound('no Product found')
+    }
+
+    const store = await Store.findOne({ userID: req.user._id })
+
+    // Check if store exists
+    if (!store) {
+      throw HttpException.NotFound('Store not found for this user')
+    }
+
+    // Filter out products that are already associated with the current user in PurchaseRequestProduct model
+    const userProducts = await PurchaseRequest.find({ store: store?._id }).distinct('product')
+
+    // Filter products to exclude the ones already in the user's PurchaseRequestProduct
+    const filteredProducts = products.filter(
+      (product) => !userProducts.some((userProduct) => userProduct.equals(product._id))
+    )
+
+    // Check if there are any remaining products after filtering
+    if (!filteredProducts.length) {
+      throw HttpException.NotFound('No available Products for purchase')
+    }
+
+    // Respond with the filtered list of products
+    res
+      .status(StatusCodes.SUCCESS)
+      .json(createResponse(true, StatusCodes.SUCCESS, 'Product details fetched successfully', filteredProducts))
+  }
+
+  async myRequestedProducts(req: Request, res: Response): Promise<void> {
+    // Find the store associated with the logged-in user
+    const store = await Store.findOne({ userID: req.user._id })
+
+    // Check if store exists
+    if (!store) {
+      throw HttpException.NotFound('Store not found for this user')
+    }
+
+    // Find pending purchase requests for this store and populate the associated product details
+    const requestedProducts = await PurchaseRequest.find({ store: store._id, status: 'PENDING' }).populate('product')
+    console.log('requested Products', requestedProducts)
+
+    // Check if there are any pending requests
+    if (!requestedProducts.length) {
+      throw HttpException.NotFound('No pending product requests found')
+    }
+
+    // Extract only the product objects from the purchase requests
+    const products = requestedProducts.map((request) => request.product)
+
+    // Send the response with the extracted products
+    res
+      .status(StatusCodes.SUCCESS)
+      .json(createResponse(true, StatusCodes.SUCCESS, 'Pending product requests fetched successfully', products))
+  }
+
+  async myBoughtProducts(req: Request, res: Response): Promise<void> {
+    // Find the store associated with the logged-in user
+    const store = await Store.findOne({ userID: req.user._id })
+
+    // Check if store exists
+    if (!store) {
+      throw HttpException.NotFound('Store not found for this user')
+    }
+
+    // Find pending purchase requests for this store and populate the associated product details
+    const requestedProducts = await PurchaseRequest.find({ store: store._id, status: 'APPROVED' }).populate('product')
+    console.log('requested Products', requestedProducts)
+
+    // Check if there are any pending requests
+    if (!requestedProducts.length) {
+      throw HttpException.NotFound('No pending product requests found')
+    }
+
+    // Extract only the product objects from the purchase requests
+    const products = requestedProducts.map((request) => request.product)
+
+    // Send the response with the extracted products
+    res
+      .status(StatusCodes.SUCCESS)
+      .json(createResponse(true, StatusCodes.SUCCESS, 'Bought product fetched successfully', products))
+  }
+
 
   async getRewardPoints(req: Request, res: Response): Promise<Response> {
     const { part_name, material, eco_friendly, item_price } = req.body

@@ -20,6 +20,8 @@ export interface IUser extends Document {
   isProfileCompleted: boolean;
   refreshToken?: string;
   totalRewardPoints: number;
+  totalContributionToEnvironment: number;
+  totalEarning: number;
   socialMediaHandles?: {
     facebook?: string;
     twitter?: string;

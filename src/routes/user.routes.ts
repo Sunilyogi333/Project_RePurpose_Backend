@@ -15,14 +15,14 @@ const iocUserController = container.resolve(UserController);
 // Get current user details
 router.get(
   '/me',
-  authentication([ROLE.MEMBER, ROLE.SELLER, ROLE.ADMIN, ROLE.STORE]),
+  authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.STORE]),
   catchAsync(iocUserController.getCurrentUser.bind(iocUserController))
 );
 
 // Update profile picture
 router.patch(
   '/profile-picture',
-  authentication([ROLE.MEMBER, ROLE.SELLER, ROLE.STORE]),
+  authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.STORE]),
   upload.single('profilePicture'), // Middleware for handling single file upload
   // RequestValidator.validate(UpdateProfilePictureDTO),
   catchAsync(iocUserController.editProfilePicture.bind(iocUserController))
@@ -31,7 +31,7 @@ router.patch(
 // Edit account details
 router.patch(
   '/edit',
-  authentication([ROLE.MEMBER, ROLE.SELLER, ROLE.STORE]),
+  authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.STORE]),
   // RequestValidator.validate(EditUserDTO),
   catchAsync(iocUserController.editAccountDetails.bind(iocUserController))
 );
@@ -69,13 +69,19 @@ router.get(
 
 router.post(
   '/report',
-  authentication([ROLE.MEMBER, ROLE.SELLER, ROLE.STORE]),
+  authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.STORE]),
   upload?.single('attachment'), 
   catchAsync(iocUserController.addReport.bind(iocUserController))
 );
 
 router.get(
-  '/status/:status',
+  '/reports',
+  authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.STORE]),
+  catchAsync(iocUserController.getAllReports.bind(iocUserController))
+);
+
+router.get(
+  '/reports/status/:status',
   authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.STORE]),
   catchAsync(iocUserController.getReportsBasedOnStatus.bind(iocUserController))
 );
@@ -83,9 +89,21 @@ router.get(
 // Edit account details
 router.patch(
   '/reports/status/:reportId',
-  authentication([ROLE.MEMBER, ROLE.SELLER, ROLE.STORE]),
+  authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.STORE]),
   catchAsync(iocUserController.updateReportStatus.bind(iocUserController))
 );
+
+router.get(
+  '/seller/dashboard-stats',
+  authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.STORE]),
+  catchAsync(iocUserController.getSellerDashboardStats.bind(iocUserController))
+)
+
+router.get(
+  '/store/dashboard-stats',
+  authentication([ROLE.ADMIN, ROLE.SELLER, ROLE.STORE]),
+  catchAsync(iocUserController.getStoreDashboardStats.bind(iocUserController))
+)
 
 // Handle undefined routes
 router.all('/*', (req, res) => {

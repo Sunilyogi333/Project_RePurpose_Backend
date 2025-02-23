@@ -55,11 +55,35 @@ router.get(
   catchAsync(productController.getAllPendingProducts.bind(productController))
 )
 
+router.get(
+  '/all/availableForMe',
+  authentication([ROLE.ADMIN, ROLE.MEMBER, ROLE.SELLER, ROLE.STORE]),
+  catchAsync(productController.getAllPendingProductsForMe.bind(productController))
+)
+router.get(
+  '/store/myRequestedProducts',
+  authentication([ROLE.ADMIN, ROLE.MEMBER, ROLE.SELLER, ROLE.STORE]),
+  catchAsync(productController.myRequestedProducts.bind(productController))
+)
+
+router.get(
+  '/store/myBoughtProducts',
+  authentication([ROLE.ADMIN, ROLE.MEMBER, ROLE.SELLER, ROLE.STORE]),
+  catchAsync(productController.myBoughtProducts.bind(productController))
+)
+
 // Get pending products
 router.get(
   '/seller/pending/:sellerId',
   authentication([ROLE.ADMIN, ROLE.MEMBER, ROLE.SELLER, ROLE.STORE]),
   catchAsync(productController.getPendingProductsBySellerId.bind(productController))
+)
+
+// Get pending products
+router.get(
+  '/seller/sold/:sellerId',
+  authentication([ROLE.ADMIN, ROLE.MEMBER, ROLE.SELLER, ROLE.STORE]),
+  catchAsync(productController.getSoldProductsBySellerId.bind(productController))
 )
 
 // Get products by seller ID

@@ -94,6 +94,14 @@ const userSchema = new Schema<IUser>(
       type: Number,
       default: 0,
     },
+    totalContributionToEnvironment: {
+      type: Number,
+      default: 0,
+    },
+    totalEarning: {
+      type: Number,
+      default: 0,
+    }
   },
   {
     timestamps: true,

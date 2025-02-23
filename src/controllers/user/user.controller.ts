@@ -8,6 +8,9 @@ import HttpException from '../../utils/HttpException'
 import User from '../../models/user.model'
 import { IUser } from '../../interfaces/user.interface'
 import Report from '../../models/report.model'
+import Product from '../../models/product.model'
+import Store from '../../models/store.model'
+import PurchaseRequest from '../../models/purchaseRequest.model'
 
 @injectable()
 export class UserController {
@@ -205,7 +208,7 @@ export class UserController {
       }
 
       const report = new Report({
-        user: userId,
+        postedBy: userId,
         category,
         title,
         description,
@@ -225,56 +228,115 @@ export class UserController {
   // Get all reports
   async getAllReports(req: Request, res: Response): Promise<void> {
     try {
-      const reports = await Report.find().populate('user', 'name email'); // Populating user info if needed
+      const reports = await Report.find().populate('postedBy', '_id firstName lastName email')
       res
         .status(StatusCodes.SUCCESS)
-        .json(createResponse(true, StatusCodes.SUCCESS, 'All reports fetched successfully', reports));
+        .json(createResponse(true, StatusCodes.SUCCESS, 'All reports fetched successfully', reports))
     } catch (error) {
-      throw HttpException.InternalServer('Error fetching reports');
+      throw HttpException.InternalServer('Error fetching reports')
     }
   }
 
   // Get reports based on status
   async getReportsBasedOnStatus(req: Request, res: Response): Promise<void> {
     try {
-      const { status } = req.params;
+      const { status } = req.params
 
       if (!['pending', 'progress', 'resolved', 'rejected'].includes(status)) {
-        throw HttpException.BadRequest('Invalid status');
+        throw HttpException.BadRequest('Invalid status')
       }
 
-      const reports = await Report.find({ status }).populate('user', 'name email');
+      const reports = await Report.find({ status }).populate('postedBy', '_id firstName lastName email')
       res
         .status(StatusCodes.SUCCESS)
-        .json(createResponse(true, StatusCodes.SUCCESS, `Reports with status: ${status}`, reports));
+        .json(createResponse(true, StatusCodes.SUCCESS, `Reports with status: ${status}`, reports))
     } catch (error) {
-      throw HttpException.InternalServer('Error fetching reports based on status');
+      throw HttpException.InternalServer('Error fetching reports based on status')
     }
   }
 
   // Update report status
   async updateReportStatus(req: Request, res: Response): Promise<void> {
-    try {
-      const { reportId } = req.params;
-      const { status } = req.body;
+    const { reportId } = req.params
+    const { status } = req.body
 
-      if (!['pending', 'progress', 'resolved', 'rejected'].includes(status)) {
-        throw HttpException.BadRequest('Invalid status');
-      }
-
-      const report = await Report.findById(reportId);
-      if (!report) {
-        throw HttpException.NotFound('Report not found');
-      }
-
-      report.status = status;
-      await report.save();
-
-      res
-        .status(StatusCodes.SUCCESS)
-        .json(createResponse(true, StatusCodes.SUCCESS, 'Report status updated successfully', report));
-    } catch (error) {
-      throw HttpException.InternalServer('Error updating report status');
+    if (!['open', 'progress', 'resolved'].includes(status)) {
+      throw HttpException.BadRequest('Invalid status')
     }
+    console.log('status', status)
+    console.log('report Id', reportId)
+
+    const report = await Report.findById(reportId)
+    if (!report) {
+      throw HttpException.NotFound('Report not found')
+    }
+
+    report.status = status
+    await report.save()
+
+    res
+      .status(StatusCodes.SUCCESS)
+      .json(createResponse(true, StatusCodes.SUCCESS, 'Report status updated successfully', report))
+  }
+
+  async getSellerDashboardStats(req: Request, res: Response): Promise<void> {
+    const userId = req.user._id
+
+    // Fetch user-related stats
+    const user = await User.findById(userId).select('totalEarning totalContributionToEnvironment totalRewardPoints')
+
+    if (!user) {
+      HttpException.NotFound('User not found ')
+    }
+
+    // Fetch product-related stats
+    const totalSoldItems = await Product.countDocuments({
+      seller: userId,
+      status: 'SOLD',
+    })
+
+    const totalPendingItems = await Product.countDocuments({
+      seller: userId,
+      status: 'AVAILABLE',
+    })
+
+    res.status(StatusCodes.SUCCESS).json(
+      createResponse(true, StatusCodes.SUCCESS, 'Seller dashboard stats successfully fetched', {
+        totalEarning: user?.totalEarning || 0,
+        totalContributionToEnvironment: user?.totalContributionToEnvironment || 0,
+        totalRewardPoints: user?.totalRewardPoints || 0,
+        totalSoldItems,
+        totalPendingItems,
+      })
+    )
+  }
+
+  async getStoreDashboardStats(req: Request, res: Response): Promise<void> {
+    const userId = req.user._id
+
+    const store = await Store.findOne({ userID: req.user._id })
+
+    // Check if store exists
+    if (!store) {
+      throw HttpException.NotFound('Store not found for this user')
+    }
+
+    // Fetch product-related stats
+    const totalBoughtItems = await PurchaseRequest.countDocuments({
+      store: store?._id,
+      status: 'APPROVED',
+    })
+
+    const totalRequestedItems = await PurchaseRequest.countDocuments({
+      seller: store?._id,
+      status: 'PENDING',
+    })
+
+    res.status(StatusCodes.SUCCESS).json(
+      createResponse(true, StatusCodes.SUCCESS, 'Seller dashboard stats successfully fetched', {
+        totalBoughtItems,
+        totalRequestedItems,
+      })
+    )
   }
 }

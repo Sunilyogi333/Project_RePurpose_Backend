@@ -13,7 +13,7 @@ export interface IReport extends Document {
 
 const ReportSchema: Schema = new Schema(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    postedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     category: {
       type: String,
       enum: ['technical', 'transaction', 'report', 'violence', 'unethical', 'customer_service', 'delivery', 'other'],
