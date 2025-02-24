@@ -131,21 +131,21 @@ export class StoreController {
   }
 
   async getVerifiedStores(req: Request, res: Response): Promise<void> {
-      // Fetch only stores with status 'verified'
-      const verifiedStores = await Store.find({ status: 'approved' })
+    // Fetch only stores with status 'verified'
+    const verifiedStores = await Store.find({ status: 'approved' })
 
-      // Check if there are any pending stores
-      if (!verifiedStores.length) {
-        res
-          .status(StatusCodes.NOT_FOUND)
-          .json(createResponse(false, StatusCodes.NOT_FOUND, 'No verified stores found', []))
-        return
-      }
-
-      // Respond with the pending stores
+    // Check if there are any pending stores
+    if (!verifiedStores.length) {
       res
-        .status(StatusCodes.SUCCESS)
-        .json(createResponse(true, StatusCodes.SUCCESS, 'Pending stores fetched successfully', verifiedStores))
+        .status(StatusCodes.NOT_FOUND)
+        .json(createResponse(false, StatusCodes.NOT_FOUND, 'No verified stores found', []))
+      return
+    }
+
+    // Respond with the pending stores
+    res
+      .status(StatusCodes.SUCCESS)
+      .json(createResponse(true, StatusCodes.SUCCESS, 'Pending stores fetched successfully', verifiedStores))
   }
 
   async getStores(req: Request, res: Response): Promise<void> {
@@ -221,7 +221,7 @@ export class StoreController {
   async requestModificationStore(req: Request, res: Response): Promise<void> {
     try {
       const { storeId } = req.params // Extract the store ID from the route parameters
-      console.log("req.body", req.body)
+      console.log('req.body', req.body)
       const { modificationReason } = req.body // Optional rejection reason from the request body
       console.log('modification reason', modificationReason)
 
@@ -259,7 +259,9 @@ export class StoreController {
   }
 
   async updateStoreKYC(req: Request, res: Response): Promise<void> {
-    const { storeId } = req.params // Store ID from the route parameter
+    // const { storeId } = req.params // Store ID from the route parameter
+    const store = await Store.findOne({ userID: req.user._id })
+    const storeId = store?._id
     const updateFields = req.body // Updated fields from the frontend
     const files = req.files as {
       passportPhoto?: Express.Multer.File[]

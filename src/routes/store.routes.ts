@@ -58,7 +58,7 @@ router.get(
 
 // Update a store (Only the store owner or admin can update)
 router.patch(
-  '/:storeId',
+  '/',
   authentication([ROLE.STORE]),
   upload.fields([
     { name: 'passportPhoto', maxCount: 1 },
